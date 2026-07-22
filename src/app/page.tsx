@@ -123,6 +123,20 @@ export default function Home() {
   const [editingProdId, setEditingProdId] = useState<string | null>(null);
   const [editingAliasesVal, setEditingAliasesVal] = useState<string>('');
 
+  // Password modals and forms states
+  const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false);
+  const [showMasterModal, setShowMasterModal] = useState<boolean>(false);
+  const [passwordInput, setPasswordInput] = useState<string>('');
+  
+  // Password change states
+  const [currentPasswordInput, setCurrentPasswordInput] = useState<string>('');
+  const [newPasswordInput, setNewPasswordInput] = useState<string>('');
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState<string>('');
+  
+  // Inline editing state for oven numbers
+  const [editingOvenProdId, setEditingOvenProdId] = useState<string | null>(null);
+  const [editingOvenVal, setEditingOvenVal] = useState<string>('');
+
   // Unregistered alert warnings dynamically evaluated from orders and products
   const unregisteredScones = useMemo(() => {
     const missingList: string[] = [];
@@ -739,13 +753,14 @@ export default function Home() {
       mergedAliases = combined || null;
     }
 
+    const targetShape = existing ? existing.shape_type : newSconeShape;
     const nextProduct: Omit<Product, 'id'> & { id?: string } = {
       product_name: existing ? existing.product_name : prodNameClean, // Keep standard product name
       option_name: existing ? existing.option_name : optNameClean, // Keep standard option
-      shape_type: existing ? existing.shape_type : newSconeShape,
+      shape_type: targetShape,
       oven_number: parseInt(newSconeOven, 10) || (existing ? existing.oven_number : null),
-      pcs_per_pan: newSconeYield,
-      cream_per_pan: newSconeCream,
+      pcs_per_pan: existing && existing.shape_type !== newSconeShape ? existing.pcs_per_pan : newSconeYield,
+      cream_per_pan: existing && existing.shape_type !== newSconeShape ? existing.cream_per_pan : newSconeCream,
       is_service: existing ? existing.is_service : false,
       aliases: mergedAliases
     };
@@ -929,6 +944,70 @@ export default function Home() {
     setEditingProdId(null);
   }
 
+  // Save inline edited oven number for a product
+  async function handleSaveInlineOven(id: string) {
+    const num = parseInt(editingOvenVal, 10);
+    const updatedOven = isNaN(num) ? null : num;
+
+    if (hasValidSupabaseConfig) {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .update({ oven_number: updatedOven })
+          .eq('id', id)
+          .select();
+        
+        if (error) throw error;
+        if (data) {
+          setProducts(prev => prev.map(p => p.id === id ? data[0] : p));
+          alert("오븐 번호가 성공적으로 수정되었습니다!");
+        }
+      } catch (err: any) {
+        alert("오븐 번호 수정 실패: " + err.message);
+      }
+    } else {
+      setProducts(prev => prev.map(p => p.id === id ? { ...p, oven_number: updatedOven } : p));
+      alert("로컬 마스터에 오븐 번호가 수정되었습니다. (Supabase 미연동)");
+    }
+    setEditingOvenProdId(null);
+  }
+
+  // Password authentication logic
+  function handlePasswordVerify(e: React.FormEvent) {
+    e.preventDefault();
+    const stored = localStorage.getItem('masterPassword') || '1234';
+    if (passwordInput === stored) {
+      setShowPasswordModal(false);
+      setShowMasterModal(true);
+      setPasswordInput('');
+    } else {
+      alert("비밀번호가 일치하지 않습니다.");
+    }
+  }
+
+  // Password change logic
+  function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    const stored = localStorage.getItem('masterPassword') || '1234';
+    if (currentPasswordInput !== stored) {
+      alert("현재 비밀번호가 올바르지 않습니다.");
+      return;
+    }
+    if (!newPasswordInput) {
+      alert("새 비밀번호를 입력해 주세요.");
+      return;
+    }
+    if (newPasswordInput !== confirmPasswordInput) {
+      alert("새 비밀번호와 확인 입력이 일치하지 않습니다.");
+      return;
+    }
+    localStorage.setItem('masterPassword', newPasswordInput);
+    alert("비밀번호가 성공적으로 변경되었습니다!");
+    setCurrentPasswordInput('');
+    setNewPasswordInput('');
+    setConfirmPasswordInput('');
+  }
+
   async function handleDeleteScone(id: string, name: string) {
     if (!confirm(`[${name}] 스콘 구성을 마스터 리스트에서 삭제하시겠습니까?`)) return;
 
@@ -1058,7 +1137,14 @@ export default function Home() {
           <h1>스콘 생산량 관리 시스템 (Next.js &amp; Supabase DB)</h1>
           <p>Supabase 마스터 연동 및 실시간 오븐 배정 포털</p>
         </div>
-        <div className="btn-group no-print">
+        <div className="btn-group no-print" style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            onClick={() => setShowPasswordModal(true)}
+            className="theme-toggle-btn"
+            style={{ background: 'var(--accent-color)', color: '#fff', fontWeight: 'bold' }}
+          >
+            🛠️ 스콘 마스터 관리
+          </button>
           <button 
             id="themeToggle" 
             onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')} 
@@ -1242,7 +1328,7 @@ export default function Home() {
                 <th className="sub-th">큐브/스틱</th>
                 <th className="sub-th">주문 (R)</th>
                 <th className="sub-th no-print">전날남음 (S)</th>
-                <th className="sub-th no-print">수동조정 (X_adj)</th>
+                <th className="sub-th no-print">수동조정</th>
                 <th className="sub-th hl-adjusted-pans">조정판수 (U)</th>
                 <th className="sub-th" style={{ borderRight: '2px solid var(--border-color)' }}>남은량 (개)</th>
                 <th className="sub-th no-print">전날남음 (Z)</th>
@@ -1327,11 +1413,15 @@ export default function Home() {
                         />
                       ) : ''}
                     </td>
-                    <td className="no-print">
+                    <td className="no-print" style={{ background: (manualAdjustTri[r.name] || 0) !== 0 ? 'rgba(245, 158, 11, 0.15)' : '' }}>
                       {r.hasTri ? (
                         <input 
                           type="number" 
                           className="table-input" 
+                          style={{ 
+                            color: (manualAdjustTri[r.name] || 0) !== 0 ? '#fb923c' : '', 
+                            fontWeight: (manualAdjustTri[r.name] || 0) !== 0 ? 'bold' : 'normal' 
+                          }}
                           value={manualAdjustTri[r.name] || 0} 
                           onChange={(e) => handleInputVal(r.name, 'manualAdjustTri', parseInt(e.target.value, 10) || 0)} 
                           min="-50" 
@@ -1457,7 +1547,7 @@ export default function Home() {
                 <strong id="svcOrdered" className="text-lg">{totals.serviceSconeOrdered} 개</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
-                <span className="opacity-75">여분스콘 합계 (W + AD)</span>
+                <span className="opacity-75">삼각스콘+스틱스콘 합</span>
                 <strong id="svcExtra" className="text-lg text-emerald-500">{totals.extraScones} 개</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
@@ -1490,10 +1580,10 @@ export default function Home() {
               <tr style={{ background: 'var(--bg-surface-elevated)' }}>
                 <th style={{ textAlign: 'left', paddingLeft: '16px' }}>상품명</th>
                 <th>오븐 번호</th>
-                <th className="hl-pans">삼각 판수 (A)</th>
-                <th>풀팬 (AK = A ÷ 3)</th>
-                <th className="hl-adjusted-pans">풀팬 (3판 단위 묶음, AL)</th>
-                <th className="hl-rem">남는 반죽 판수 (AN = 3*(AK-AL) + AM)</th>
+                <th className="hl-pans">삼각/바 판수</th>
+                <th style={{ display: 'none' }}>풀팬 (AK = A ÷ 3)</th>
+                <th className="hl-adjusted-pans">풀팬 (3판 단위)</th>
+                <th className="hl-rem">남는 반죽 판수</th>
               </tr>
             </thead>
             <tbody>
@@ -1507,7 +1597,7 @@ export default function Home() {
                         <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: 'bold', background: 'rgba(255,255,255,0.02)' }}>{item.name}</td>
                         <td></td>
                         <td></td>
-                        <td></td>
+                        <td style={{ display: 'none' }}></td>
                         <td></td>
                         <td></td>
                       </tr>
@@ -1538,7 +1628,7 @@ export default function Home() {
                       <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: '500' }}>{r.name}</td>
                       <td><span className="badge-oven badge-tri">오븐 {r.ovenTri}</span></td>
                       <td className="hl-pans">{valAJ}</td>
-                      <td>{valAK}</td>
+                      <td style={{ display: 'none' }}>{valAK}</td>
                       <td className="hl-adjusted-pans">{valAL}</td>
                       <td className="hl-rem" style={{ fontWeight: 'bold', background: 'rgba(245, 158, 11, 0.05)' }}>{valAN}</td>
                     </tr>
@@ -1551,7 +1641,7 @@ export default function Home() {
                     <td style={{ textAlign: 'center' }}>합계</td>
                     <td></td>
                     <td id="ovenSumA" className="hl-pans">{sumAJ}</td>
-                    <td id="ovenSumFull">{sumAK}</td>
+                    <td id="ovenSumFull" style={{ display: 'none' }}>{sumAK}</td>
                     <td id="ovenSumFull3" className="hl-adjusted-pans">{sumAL}</td>
                     <td id="ovenSumRem2" className="hl-rem">{sumAN}</td>
                   </tr>
@@ -1564,244 +1654,404 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Scone Master CRUD Management Section */}
-      <div className="page-1 no-print mt-6" ref={crudSectionRef}>
-        <div className="section-title">
-          <span>🛠️ 스콘 마스터 관리 (Supabase DB 연동)</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Register Form Card */}
-          <div className="card col-span-1">
-            <div className="card-title">스콘 마스터 등록</div>
-            <form onSubmit={handleCreateScone} className="flex flex-col gap-4">
+      {/* Password entry modal */}
+      {showPasswordModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.8)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 10000
+        }}>
+          <div className="bg-[#0f172a] border border-white/10 rounded-2xl p-6 w-full max-w-sm relative shadow-2xl">
+            <button 
+              onClick={() => setShowPasswordModal(false)}
+              style={{
+                position: 'absolute',
+                top: '15px',
+                right: '15px',
+                background: 'transparent',
+                border: 'none',
+                color: '#fff',
+                fontSize: '16px',
+                cursor: 'pointer'
+              }}
+              className="opacity-70 hover:opacity-100 transition"
+            >
+              ✕
+            </button>
+            <div className="text-lg font-bold text-center mb-4">🔐 관리자 비밀번호 인증</div>
+            <form onSubmit={handlePasswordVerify} className="flex flex-col gap-4">
               <div>
-                <label className="text-xs opacity-75 block mb-1">스콘명 (필수)</label>
                 <input 
-                  type="text" 
-                  value={newSconeName}
-                  onChange={(e) => setNewSconeName(e.target.value)}
-                  placeholder="예: 말차초코칩스콘"
-                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                  type="password" 
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2.5 text-center text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                  placeholder="비밀번호 입력 (기본: 1234)"
+                  autoFocus
                 />
               </div>
-
-              <div>
-                <label className="text-xs opacity-75 block mb-1">옵션명 (선택)</label>
-                <input 
-                  type="text" 
-                  value={newSconeOption}
-                  onChange={(e) => setNewSconeOption(e.target.value)}
-                  placeholder="예: [미니큐브], [스틱스콘] 또는 없음"
-                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs opacity-75 block mb-1">형태 지정</label>
-                <select 
-                  value={newSconeShape}
-                  onChange={(e) => {
-                    const val = e.target.value as any;
-                    setNewSconeShape(val);
-                    // Autofill typical yields
-                    if (val === '미니큐브') {
-                      setNewSconeYield(2);
-                      setNewSconeCream(0);
-                    } else if (val === '스틱스콘') {
-                      setNewSconeYield(9);
-                      setNewSconeCream(0);
-                    } else if (val === '삼각스콘') {
-                      setNewSconeYield(8);
-                      setNewSconeCream(170);
-                    }
-                  }}
-                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="삼각스콘">삼각스콘</option>
-                  <option value="미니큐브">미니큐브</option>
-                  <option value="스틱스콘">스틱스콘</option>
-                  <option value="기타">기타</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs opacity-75 block mb-1">오븐 번호</label>
-                  <input 
-                    type="number" 
-                    value={newSconeOven}
-                    onChange={(e) => setNewSconeOven(e.target.value)}
-                    placeholder="예: 4"
-                    className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs opacity-75 block mb-1">1판 생산량</label>
-                  <input 
-                    type="number" 
-                    value={newSconeYield}
-                    onChange={(e) => setNewSconeYield(parseInt(e.target.value, 10) || 0)}
-                    className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs opacity-75 block mb-1">1판당 생크림 소요량 (ml)</label>
-                <input 
-                  type="number" 
-                  value={newSconeCream}
-                  onChange={(e) => setNewSconeCream(parseInt(e.target.value, 10) || 0)}
-                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs opacity-75 block mb-1">엑셀 매칭 상품명/키워드 (쉼표 구분)</label>
-                <input 
-                  type="text" 
-                  value={newSconeAliases}
-                  onChange={(e) => setNewSconeAliases(e.target.value)}
-                  placeholder="예: -----[하프팩]통밀츄러미니큐브, 츄러스콘[미니큐브]"
-                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <button type="submit" className="btn btn-primary w-full mt-2 font-bold py-2.5">
-                💾 저장 및 마스터 반영
+              <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition w-full">
+                인증 완료
               </button>
             </form>
           </div>
+        </div>
+      )}
 
-          {/* Scone Master List Table Card */}
-          <div className="card col-span-2">
-            <div className="card-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <span>등록된 스콘 마스터 목록</span>
-                <span className="text-xs opacity-50 font-normal ml-2">총 {products.length}개 구성</span>
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button 
-                  onClick={handleRestoreFromBackup}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition"
-                >
-                  🔄 백업 데이터 복원 (37개)
-                </button>
-                <button 
-                  onClick={handleClearAllDBData}
-                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition"
-                >
-                  🗑️ DB 데이터 전체 초기화
-                </button>
-              </div>
+      {/* Scone Master CRUD Management Modal */}
+      {showMasterModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.85)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }}>
+          <div className="bg-[#0f172a] border border-white/10 rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
+            <button 
+              onClick={() => setShowMasterModal(false)}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'rgba(255,255,255,0.05)',
+                border: 'none',
+                color: '#fff',
+                fontSize: '18px',
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              className="hover:bg-white/10 transition"
+            >
+              ✕
+            </button>
+            <div className="section-title mb-6">
+              <span>🛠️ 스콘 마스터 관리 (Supabase DB 연동)</span>
             </div>
             
-            <div className="table-container" style={{ maxHeight: '420px', overflowY: 'auto' }}>
-              <table>
-                <thead>
-                  <tr style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-surface-elevated)' }}>
-                    <th style={{ textAlign: 'left', paddingLeft: '16px' }}>스콘명</th>
-                    <th>옵션</th>
-                    <th>형태</th>
-                    <th>오븐</th>
-                    <th>수율</th>
-                    <th>생크림</th>
-                    <th>매칭 키워드</th>
-                    <th>작업</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((p) => (
-                    <tr key={p.id}>
-                      <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: '500' }}>{p.product_name}</td>
-                      <td>{p.option_name || '-'}</td>
-                      <td><span className="text-xs opacity-75">{p.shape_type}</span></td>
-                      <td>
-                        {p.oven_number ? (
-                          <span className="badge-oven badge-tri">오븐 {p.oven_number}</span>
-                        ) : '-'}
-                      </td>
-                      <td>{p.pcs_per_pan}개</td>
-                      <td>{p.cream_per_pan}ml</td>
-                      <td style={{ fontSize: '11px', opacity: 0.8, maxWidth: '280px' }}>
-                        {editingProdId === p.id ? (
-                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                            <input 
-                              type="text" 
-                              value={editingAliasesVal}
-                              onChange={(e) => setEditingAliasesVal(e.target.value)}
-                              className="bg-[#1e2942] border border-indigo-500 rounded px-1.5 py-0.5 text-xs text-[#f8fafc]"
-                              placeholder="쉼표로 구분"
-                              style={{ width: '160px' }}
-                              autoFocus
-                            />
-                            <button 
-                              onClick={() => handleSaveInlineAliases(p.id)}
-                              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
-                            >
-                              저장
-                            </button>
-                            <button 
-                              onClick={() => setEditingProdId(null)}
-                              className="bg-gray-600 hover:bg-gray-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
-                            >
-                              취소
-                            </button>
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', width: '100%' }}>
-                            {p.aliases ? (
-                              p.aliases.split(',').map((alias, idx) => {
-                                const cleanAlias = cleanString(alias);
-                                if (!cleanAlias) return null;
-                                return (
-                                  <span 
-                                    key={idx} 
-                                    className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] px-1.5 py-0.5 rounded-full"
-                                    style={{ display: 'inline-block', whiteSpace: 'nowrap' }}
-                                  >
-                                    {cleanAlias}
-                                  </span>
-                                );
-                              })
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="col-span-1">
+                {/* Register Form Card */}
+                <div className="card">
+                  <div className="card-title">스콘 마스터 등록</div>
+                  <form onSubmit={handleCreateScone} className="flex flex-col gap-4">
+                    <div>
+                      <label className="text-xs opacity-75 block mb-1">스콘명 (필수)</label>
+                      <input 
+                        type="text" 
+                        value={newSconeName}
+                        onChange={(e) => setNewSconeName(e.target.value)}
+                        placeholder="예: 말차초코칩스콘"
+                        className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs opacity-75 block mb-1">옵션명 (선택)</label>
+                      <input 
+                        type="text" 
+                        value={newSconeOption}
+                        onChange={(e) => setNewSconeOption(e.target.value)}
+                        placeholder="예: [미니큐브], [스틱스콘] 또는 없음"
+                        className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs opacity-75 block mb-1">형태 지정</label>
+                      <select 
+                        value={newSconeShape}
+                        onChange={(e) => {
+                          const val = e.target.value as any;
+                          setNewSconeShape(val);
+                          if (val === '미니큐브') {
+                            setNewSconeYield(2);
+                            setNewSconeCream(0);
+                          } else if (val === '스틱스콘') {
+                            setNewSconeYield(9);
+                            setNewSconeCream(0);
+                          } else if (val === '삼각스콘') {
+                            setNewSconeYield(8);
+                            setNewSconeCream(170);
+                          }
+                        }}
+                        className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                      >
+                        <option value="삼각스콘">삼각스콘</option>
+                        <option value="미니큐브">미니큐브</option>
+                        <option value="스틱스콘">스틱스콘</option>
+                        <option value="기타">기타</option>
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs opacity-75 block mb-1">오븐 번호</label>
+                        <input 
+                          type="number" 
+                          value={newSconeOven}
+                          onChange={(e) => setNewSconeOven(e.target.value)}
+                          placeholder="예: 4"
+                          className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs opacity-75 block mb-1">1판 생산량</label>
+                        <input 
+                          type="number" 
+                          value={newSconeYield}
+                          onChange={(e) => setNewSconeYield(parseInt(e.target.value, 10) || 0)}
+                          className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs opacity-75 block mb-1">1판당 생크림 소요량 (ml)</label>
+                      <input 
+                        type="number" 
+                        value={newSconeCream}
+                        onChange={(e) => setNewSconeCream(parseInt(e.target.value, 10) || 0)}
+                        className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs opacity-75 block mb-1">엑셀 매칭 상품명/키워드 (쉼표 구분)</label>
+                      <input 
+                        type="text" 
+                        value={newSconeAliases}
+                        onChange={(e) => setNewSconeAliases(e.target.value)}
+                        placeholder="예: -----[하프팩]통밀츄러미니큐브, 츄러스콘[미니큐브]"
+                        className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <button type="submit" className="btn btn-primary w-full mt-2 font-bold py-2.5">
+                      💾 저장 및 마스터 반영
+                    </button>
+                  </form>
+                </div>
+                
+                {/* Change Password Card */}
+                <div className="card mt-4">
+                  <div className="card-title">비밀번호 변경</div>
+                  <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
+                    <div>
+                      <label className="text-xs opacity-75 block mb-1">현재 비밀번호</label>
+                      <input 
+                        type="password" 
+                        value={currentPasswordInput}
+                        onChange={(e) => setCurrentPasswordInput(e.target.value)}
+                        className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                        placeholder="현재 비밀번호 입력"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs opacity-75 block mb-1">새 비밀번호</label>
+                      <input 
+                        type="password" 
+                        value={newPasswordInput}
+                        onChange={(e) => setNewPasswordInput(e.target.value)}
+                        className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                        placeholder="새 비밀번호 입력"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs opacity-75 block mb-1">새 비밀번호 확인</label>
+                      <input 
+                        type="password" 
+                        value={confirmPasswordInput}
+                        onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                        className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                        placeholder="새 비밀번호 확인"
+                      />
+                    </div>
+                    <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition w-full">
+                      비밀번호 변경 적용
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              {/* Master List Table */}
+              <div className="card col-span-2">
+                <div className="card-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <span>등록된 스콘 마스터 목록</span>
+                    <span className="text-xs opacity-50 font-normal ml-2">총 {products.length}개 구성</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button 
+                      onClick={handleRestoreFromBackup}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"
+                    >
+                      🔄 백업 데이터 복원 (37개)
+                    </button>
+                    <button 
+                      onClick={handleClearAllDBData}
+                      className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"
+                    >
+                      🗑️ DB 데이터 전체 초기화
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="table-container" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                  <table>
+                    <thead>
+                      <tr style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-surface-elevated)' }}>
+                        <th style={{ textAlign: 'left', paddingLeft: '16px' }}>스콘명</th>
+                        <th>옵션</th>
+                        <th>형태</th>
+                        <th>오븐</th>
+                        <th>수율</th>
+                        <th>생크림</th>
+                        <th>매칭 키워드</th>
+                        <th>작업</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {products.map((p) => (
+                        <tr key={p.id}>
+                          <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: '500' }}>{p.product_name}</td>
+                          <td>{p.option_name || '-'}</td>
+                          <td><span className="text-xs opacity-75">{p.shape_type}</span></td>
+                          <td>
+                            {editingOvenProdId === p.id ? (
+                              <div style={{ display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center' }}>
+                                <input 
+                                  type="number" 
+                                  value={editingOvenVal}
+                                  onChange={(e) => setEditingOvenVal(e.target.value)}
+                                  className="bg-[#1e2942] border border-indigo-500 rounded px-1.5 py-0.5 text-xs text-[#f8fafc]"
+                                  style={{ width: '50px' }}
+                                  autoFocus
+                                />
+                                <button 
+                                  onClick={() => handleSaveInlineOven(p.id)}
+                                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
+                                >
+                                  저장
+                                </button>
+                                <button 
+                                  onClick={() => setEditingOvenProdId(null)}
+                                  className="bg-gray-600 hover:bg-gray-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
+                                >
+                                  취소
+                                </button>
+                              </div>
                             ) : (
-                              <span className="text-xs opacity-50">-</span>
+                              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }}>
+                                {p.oven_number ? (
+                                  <span className="badge-oven badge-tri">오븐 {p.oven_number}</span>
+                                ) : '-'}
+                                <button 
+                                  onClick={() => {
+                                    setEditingOvenProdId(p.id);
+                                    setEditingOvenVal(p.oven_number ? String(p.oven_number) : '');
+                                  }}
+                                  className="text-indigo-400 hover:text-indigo-300 text-[10px] underline cursor-pointer"
+                                >
+                                  수정
+                                </button>
+                              </div>
                             )}
-                            <button 
-                              onClick={() => {
-                                setEditingProdId(p.id);
-                                setEditingAliasesVal(p.aliases || '');
-                              }}
-                              className="text-indigo-400 hover:text-indigo-300 text-[10px] underline ml-auto cursor-pointer"
-                            >
-                              수정
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                      <td>
-                        {!p.is_service ? (
-                          <button 
-                            onClick={() => handleDeleteScone(p.id, p.product_name + (p.option_name || ""))}
-                            className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-xs px-2 py-1 rounded transition"
-                          >
-                            삭제
-                          </button>
-                        ) : (
-                          <span className="text-xs opacity-50">고정</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          </td>
+                          <td>{p.pcs_per_pan}개</td>
+                          <td>{p.cream_per_pan}ml</td>
+                          <td style={{ fontSize: '11px', opacity: 0.8, maxWidth: '280px' }}>
+                            {editingProdId === p.id ? (
+                              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                                <input 
+                                  type="text" 
+                                  value={editingAliasesVal}
+                                  onChange={(e) => setEditingAliasesVal(e.target.value)}
+                                  className="bg-[#1e2942] border border-indigo-500 rounded px-1.5 py-0.5 text-xs text-[#f8fafc]"
+                                  placeholder="쉼표로 구분"
+                                  style={{ width: '160px' }}
+                                  autoFocus
+                                />
+                                <button 
+                                  onClick={() => handleSaveInlineAliases(p.id)}
+                                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
+                                >
+                                  저장
+                                </button>
+                                <button 
+                                  onClick={() => setEditingProdId(null)}
+                                  className="bg-gray-600 hover:bg-gray-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
+                                >
+                                  취소
+                                </button>
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', width: '100%' }}>
+                                {p.aliases ? (
+                                  p.aliases.split(',').map((alias, idx) => {
+                                    const cleanAlias = cleanString(alias);
+                                    if (!cleanAlias) return null;
+                                    return (
+                                      <span 
+                                        key={idx} 
+                                        className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] px-1.5 py-0.5 rounded-full"
+                                        style={{ display: 'inline-block', whiteSpace: 'nowrap' }}
+                                      >
+                                        {cleanAlias}
+                                      </span>
+                                    );
+                                  })
+                                ) : (
+                                  <span className="text-xs opacity-50">-</span>
+                                )}
+                                <button 
+                                  onClick={() => {
+                                    setEditingProdId(p.id);
+                                    setEditingAliasesVal(p.aliases || '');
+                                  }}
+                                  className="text-indigo-400 hover:text-indigo-300 text-[10px] underline ml-auto cursor-pointer"
+                                >
+                                  수정
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            {!p.is_service ? (
+                              <button 
+                                onClick={() => handleDeleteScone(p.id, p.product_name + (p.option_name || ""))}
+                                className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-xs px-2 py-1 rounded transition cursor-pointer"
+                              >
+                                삭제
+                              </button>
+                            ) : (
+                              <span className="text-xs opacity-50">고정</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
-
         </div>
-      </div>
+      )}
 
     </div>
   );

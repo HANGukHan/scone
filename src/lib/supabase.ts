@@ -1,13 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Helper to sanitize config values (stripping outer quotes, spaces, and trailing slashes)
 function sanitizeUrl(url: string | undefined): string {
   if (!url) return 'https://placeholder-project-id.supabase.co';
-  return url
+  let sanitized = url
     .trim()
     .replace(/^["']|["']$/g, '') // Strip outer single/double quotes
     .trim()
     .replace(/\/+$/, '');        // Strip all trailing slashes
+
+  // Automatically strip /rest/v1 or /auth/v1 if present at the end
+  sanitized = sanitized.replace(/\/rest\/v1\/?$/, '');
+  sanitized = sanitized.replace(/\/auth\/v1\/?$/, '');
+
+  // Final trim and trailing slash removal
+  return sanitized.trim().replace(/\/+$/, '');
 }
 
 function sanitizeKey(key: string | undefined): string {

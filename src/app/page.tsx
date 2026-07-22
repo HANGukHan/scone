@@ -144,9 +144,6 @@ export default function Home() {
     }
     loadMasterProducts();
 
-    // Load initial default dataset
-    loadData(DEFAULT_ORDERS);
-
     // Set document print dates
     const formatted = new Date().toLocaleDateString('ko-KR', { 
       year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 

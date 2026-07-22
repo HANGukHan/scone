@@ -699,6 +699,64 @@ export default function Home() {
     }
   }
 
+  // Restore all master products from backup
+  async function handleRestoreFromBackup() {
+    if (!confirm("🔄 백업 데이터(37개 상품 마스터)를 Supabase DB에 다시 복구하시겠습니까?")) return;
+    
+    if (hasValidSupabaseConfig) {
+      try {
+        // Clear existing first
+        await supabase
+          .from('products')
+          .delete()
+          .neq('id', '00000000-0000-0000-0000-000000000000');
+
+        // Omit id since they will be re-assigned by the database
+        const seedPayload = INITIAL_PRODUCTS.map(p => {
+          const { id, ...rest } = p;
+          return rest;
+        });
+
+        // Insert to DB
+        const { data, error } = await supabase
+          .from('products')
+          .insert(seedPayload)
+          .select();
+        
+        if (error) {
+          if (error.message.includes("column") || error.code === "42703") {
+            const fallbackPayload = seedPayload.map(p => {
+              const cp = { ...p };
+              delete cp.aliases;
+              return cp;
+            });
+            const { data: fbData, error: fbError } = await supabase
+              .from('products')
+              .insert(fallbackPayload)
+              .select();
+            if (fbError) throw fbError;
+            if (fbData) {
+              setProducts(fbData);
+              alert("백업 데이터 복원 성공! 단, Supabase DB에 'aliases' 열이 없어 매칭 데이터는 복원되지 못했습니다.");
+              return;
+            }
+          }
+          throw error;
+        }
+
+        if (data) {
+          setProducts(data);
+          alert("Supabase DB에 백업 데이터 37개 스콘 마스터 복원이 완료되었습니다!");
+        }
+      } catch (err: any) {
+        alert("복원 실패: " + err.message);
+      }
+    } else {
+      setProducts(INITIAL_PRODUCTS);
+      alert("로컬 마스터에 백업 데이터 37개 구성이 복원되었습니다. (Supabase 미연동)");
+    }
+  }
+
   async function handleDeleteScone(id: string, name: string) {
     if (!confirm(`[${name}] 스콘 구성을 마스터 리스트에서 삭제하시겠습니까?`)) return;
 
@@ -1451,12 +1509,20 @@ export default function Home() {
                 <span>등록된 스콘 마스터 목록</span>
                 <span className="text-xs opacity-50 font-normal ml-2">총 {products.length}개 구성</span>
               </div>
-              <button 
-                onClick={handleClearAllDBData}
-                className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition"
-              >
-                🗑️ DB 데이터 전체 초기화
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  onClick={handleRestoreFromBackup}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition"
+                >
+                  🔄 백업 데이터 복원 (37개)
+                </button>
+                <button 
+                  onClick={handleClearAllDBData}
+                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition"
+                >
+                  🗑️ DB 데이터 전체 초기화
+                </button>
+              </div>
             </div>
             
             <div className="table-container" style={{ maxHeight: '420px', overflowY: 'auto' }}>

@@ -274,6 +274,17 @@ export default function Home() {
     return str.replace(/[-]/g, '').replace(/\s+/g, '').toLowerCase();
   }
 
+  // Fuzzy normalize product names to reconcile phonetic and trailing word deviations (e.g. 배리 vs 베리, 스콘 suffix)
+  function fuzzyNormalizeProductName(name: string): string {
+    if (!name) return '';
+    return name
+      .replace(/[-]/g, '')
+      .replace(/\s+/g, '')
+      .replace(/스콘$/g, '')
+      .replace(/배/g, '베')
+      .toLowerCase();
+  }
+
   // Lookup helper using master products database with alias mapping
   function getOrderQtyByMatch(product: Product) {
     let sumQty = 0;
@@ -659,8 +670,13 @@ export default function Home() {
     const prodNameClean = newSconeName.trim();
     const optNameClean = newSconeOption.trim() || null;
 
-    // Check if configuration already exists in local state
-    const existing = products.find(p => p.product_name === prodNameClean && p.option_name === optNameClean);
+    // Check if configuration already exists in local state (fuzzy match on name and shape/option)
+    const existing = products.find(p => {
+      const nameMatch = fuzzyNormalizeProductName(p.product_name) === fuzzyNormalizeProductName(prodNameClean);
+      const optMatch = normalize(p.option_name || '') === normalize(optNameClean || '');
+      const shapeMatch = p.shape_type === newSconeShape;
+      return nameMatch && (optMatch || shapeMatch);
+    });
 
     // Merge aliases if existing
     let mergedAliases = newSconeAliases.trim() || null;
@@ -672,13 +688,13 @@ export default function Home() {
     }
 
     const nextProduct: Omit<Product, 'id'> & { id?: string } = {
-      product_name: prodNameClean,
-      option_name: optNameClean,
-      shape_type: newSconeShape,
-      oven_number: parseInt(newSconeOven, 10) || null,
+      product_name: existing ? existing.product_name : prodNameClean, // Keep standard product name
+      option_name: existing ? existing.option_name : optNameClean, // Keep standard option
+      shape_type: existing ? existing.shape_type : newSconeShape,
+      oven_number: parseInt(newSconeOven, 10) || (existing ? existing.oven_number : null),
       pcs_per_pan: newSconeYield,
       cream_per_pan: newSconeCream,
-      is_service: false,
+      is_service: existing ? existing.is_service : false,
       aliases: mergedAliases
     };
 

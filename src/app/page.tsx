@@ -154,45 +154,59 @@ export default function Home() {
     if (print2) print2.innerText = "출력일시: " + formatted;
   }, []);
 
-  // Update product layout sequences automatically when product master database updates
+  // Update product layout sequences and sync input structures
   useEffect(() => {
     if (products.length === 0) return;
-    
-    // Categorized sequence grouping (triangles first, then cubes and sticks)
-    const activeProducts = products.filter(p => !p.is_service);
-    
-    const seq = activeProducts.map(p => {
-      // Create unified clean display name
-      const displayName = p.product_name + (p.option_name ? p.option_name : "");
-      return {
-        id: p.id,
-        type: 'product',
-        name: displayName,
-        rawProduct: p
-      };
-    });
 
-    // Remove duplicates or merge items, maintaining spacer integrations
+    // Find all unique base product names present in the active orders
+    const activeBaseNames = Array.from(new Set(
+      products
+        .filter(p => !p.is_service)
+        .filter(p => {
+          let key = p.product_name + (p.option_name || "");
+          let orderQty = 0;
+          if (p.shape_type === '삼각스콘') {
+            const simpleName = `-${p.product_name}`;
+            const prefixName = `---${p.product_name}`;
+            orderQty = orders[simpleName] || orders[prefixName] || orders[key] || 0;
+          } else if (p.shape_type === '미니큐브') {
+            const prefixCube = `-----[하프팩]${p.product_name.replace("스콘","")}미니큐브`;
+            const shakeCube = `-----[미니쉐이크]${p.product_name.replace("[미니쉐이크]","")}`;
+            orderQty = orders[prefixCube] || orders[shakeCube] || orders[key] || 0;
+          } else if (p.shape_type === '스틱스콘') {
+            const prefixStick = `----[세트]${p.product_name.replace("스콘","")}스틱 3팩`;
+            orderQty = orders[prefixStick] || orders[key] || 0;
+          } else {
+            orderQty = orders[p.product_name] || orders[key] || 0;
+          }
+          return orderQty > 0;
+        })
+        .map(p => p.product_name)
+    ));
+
     setProductSequence(prevSeq => {
-      if (prevSeq.length === 0) return seq;
       const nextSeq: any[] = [];
       
       prevSeq.forEach(item => {
         if (item.type === 'spacer') {
           nextSeq.push(item);
         } else {
-          // Check if product still exists in updated products array
-          const exist = seq.find(s => s.id === item.id);
-          if (exist) {
-            nextSeq.push(exist);
+          // Check if it is still active in loaded orders
+          if (activeBaseNames.includes(item.name)) {
+            nextSeq.push(item);
           }
         }
       });
 
-      // Append any brand new products not currently in the sequence
-      seq.forEach(s => {
-        if (!nextSeq.find(n => n.id === s.id)) {
-          nextSeq.push(s);
+      // Append newly active base names
+      activeBaseNames.forEach(name => {
+        if (!nextSeq.find(n => n.type === 'product' && n.name === name)) {
+          const p = products.find(prod => prod.product_name === name);
+          nextSeq.push({
+            id: p ? p.id : name,
+            type: 'product',
+            name: name
+          });
         }
       });
 
@@ -203,7 +217,7 @@ export default function Home() {
     setCarryOverTri(prev => {
       const next = { ...prev };
       products.forEach(p => {
-        const name = p.product_name + (p.option_name || "");
+        const name = p.product_name;
         if (next[name] === undefined) next[name] = 0;
       });
       return next;
@@ -211,7 +225,7 @@ export default function Home() {
     setManualAdjustTri(prev => {
       const next = { ...prev };
       products.forEach(p => {
-        const name = p.product_name + (p.option_name || "");
+        const name = p.product_name;
         if (next[name] === undefined) next[name] = 0;
       });
       return next;
@@ -219,13 +233,12 @@ export default function Home() {
     setCarryOverCube(prev => {
       const next = { ...prev };
       products.forEach(p => {
-        const name = p.product_name + (p.option_name || "");
+        const name = p.product_name;
         if (next[name] === undefined) next[name] = 0;
       });
       return next;
     });
-
-  }, [products]);
+  }, [products, orders]);
 
   // Theme Sync
   useEffect(() => {
@@ -283,7 +296,7 @@ export default function Home() {
     return lookupQty;
   }
 
-  // Calculate live outputs reactively
+  // Calculate live outputs reactively grouped by baseName
   const computedData = useMemo(() => {
     const starterPack = getOrderQty("스타터팩", null);
     const serviceProduct = products.find(p => p.is_service);
@@ -293,33 +306,32 @@ export default function Home() {
 
     productSequence.forEach(item => {
       if (item.type === 'spacer') return;
-      const prod = item.rawProduct as Product;
-      if (!prod) return;
+      const baseName = item.name;
 
-      const r: any = { 
-        name: prod.product_name + (prod.option_name || ""),
-        ovenTri: prod.shape_type === '삼각스콘' ? prod.oven_number : null,
-        ovenStickCube: prod.shape_type !== '삼각스콘' ? prod.oven_number : null,
-        creamPerPan: prod.cream_per_pan,
-        hasTri: prod.shape_type === '삼각스콘',
-        hasCube: prod.shape_type === '미니큐브',
-        hasStick: prod.shape_type === '스틱스콘'
+      // Find configurations under same baseName
+      const pTri = products.find(p => p.product_name === baseName && p.shape_type === '삼각스콘');
+      const pCube = products.find(p => p.product_name === baseName && p.shape_type === '미니큐브');
+      const pStick = products.find(p => p.product_name === baseName && p.shape_type === '스틱스콘');
+
+      const r: any = {
+        name: baseName,
+        ovenTri: pTri ? pTri.oven_number : null,
+        ovenStickCube: pCube ? pCube.oven_number : (pStick ? pStick.oven_number : null),
+        hasTri: !!pTri,
+        hasCube: !!pCube,
+        hasStick: !!pStick
       };
 
-      const orderQty = getOrderQtyByMatch(prod);
-
-      // A. Mini Cube Calculations
-      if (r.hasCube) {
-        let ordersCube = orderQty;
-        // Check if starter pack adds to it
-        if (prod.product_name.includes("쑥인절미") || prod.product_name.includes("통밀츄러") || prod.product_name.includes("바닐라피칸") || prod.product_name.includes("OXO")) {
+      // 1. Calculate Mini Cube
+      if (pCube) {
+        let ordersCube = getOrderQtyByMatch(pCube);
+        if (pCube.product_name.includes("쑥인절미") || pCube.product_name.includes("통밀츄러") || pCube.product_name.includes("바닐라피칸") || pCube.product_name.includes("OXO")) {
           ordersCube += starterPack;
         }
-
         r.cubeOrders = ordersCube;
-        r.cubeZ = carryOverCube[r.name] || 0;
+        r.cubeZ = carryOverCube[baseName] || 0;
 
-        if (prod.pcs_per_pan === 4) { // [미니쉐이크] products
+        if (pCube.pcs_per_pan === 4) { // [미니쉐이크] products
           r.cubeX = Math.ceil(ordersCube / 4);
           r.cubeAA = r.cubeX * 4 - ordersCube + r.cubeZ;
           if (r.cubeZ > 0 && r.cubeAA >= 4) {
@@ -348,10 +360,10 @@ export default function Home() {
         r.cubeAB = 0;
       }
 
-      // B. Stick Scone Calculations
-      if (r.hasStick) {
-        let ordersStick = orderQty;
-        let starterStick = (prod.product_name.includes("통밀츄러") || prod.product_name.includes("바닐라피칸")) ? starterPack : 0;
+      // 2. Calculate Stick Scone
+      if (pStick) {
+        let ordersStick = getOrderQtyByMatch(pStick);
+        let starterStick = (pStick.product_name.includes("통밀츄러") || pStick.product_name.includes("바닐라피칸")) ? starterPack : 0;
         
         r.stickAC = Math.ceil((starterStick / 9) + (ordersStick / 3));
         r.stickAD = r.stickAC * 9 - (starterStick + ordersStick * 3);
@@ -360,25 +372,21 @@ export default function Home() {
         r.stickAD = 0;
       }
 
-      // C. Triangular Scone Calculations
-      if (r.hasTri) {
-        let ordersTri = orderQty;
-        if (prod.product_name.includes("OXO스콘")) {
+      // 3. Calculate Triangular Scone
+      if (pTri) {
+        let ordersTri = getOrderQtyByMatch(pTri);
+        if (pTri.product_name.includes("OXO스콘")) {
           ordersTri += starterPack;
         }
         r.triR = ordersTri;
-        r.triS = carryOverTri[r.name] || 0;
+        r.triS = carryOverTri[baseName] || 0;
         r.triNet = Math.max(0, r.triR - r.triS);
         
-        const yieldTri = prod.pcs_per_pan;
+        const yieldTri = pTri.pcs_per_pan;
         r.triT = Math.ceil(r.triNet / yieldTri);
         r.triV = r.triT * yieldTri - r.triNet;
 
-        // Try to find matching cube row to sync carry-over margins
-        const matchingCube = products.find(p => p.product_name === prod.product_name && p.shape_type === '미니큐브');
-        const cubeName = matchingCube ? matchingCube.product_name + (matchingCube.option_name || "") : "";
-        const cubeAA = data[cubeName]?.cubeAA || 0;
-
+        const cubeAA = r.cubeAA || 0;
         if (cubeAA === 1 && r.triV >= (yieldTri / 2)) {
           r.triU_calc = r.triT - 0.5;
         } else if (cubeAA === 1) {
@@ -387,7 +395,7 @@ export default function Home() {
           r.triU_calc = r.triT;
         }
         
-        r.triX_adj = manualAdjustTri[r.name] || 0;
+        r.triX_adj = manualAdjustTri[baseName] || 0;
         r.triU = r.triU_calc + r.triX_adj;
 
         const baseTriAA = r.triV + (yieldTri / 2) * cubeAA;
@@ -405,11 +413,11 @@ export default function Home() {
         r.triW = 0;
       }
 
-      // D. Totals
+      // 4. Combined Totals & Cream AK
       r.totalQ = r.triU + r.stickAC + r.cubeY;
-      r.creamAK = r.totalQ * prod.cream_per_pan;
+      r.creamAK = r.triU * (pTri?.cream_per_pan || 0) + r.cubeY * (pCube?.cream_per_pan || 0) + r.stickAC * (pStick?.cream_per_pan || 0);
 
-      data[r.name] = r;
+      data[baseName] = r;
     });
 
     return data;
@@ -980,7 +988,10 @@ export default function Home() {
 
                 const r = computedData[item.name];
                 if (!r) return null;
-                const p = item.rawProduct as Product;
+
+                const pTri = products.find(p => p.product_name === item.name && p.shape_type === '삼각스콘');
+                const pCube = products.find(p => p.product_name === item.name && p.shape_type === '미니큐브');
+                const pStick = products.find(p => p.product_name === item.name && p.shape_type === '스틱스콘');
 
                 return (
                   <tr 
@@ -1038,7 +1049,7 @@ export default function Home() {
                     </td>
                     <td className="hl-adjusted-pans">{r.hasCube ? r.cubeY : ''}</td>
                     <td className="hl-rem" style={{ borderRight: '2px solid var(--border-color)' }}>
-                      {r.hasCube ? (p.pcs_per_pan === 4 ? r.cubeAB : r.cubeAA) : ''}
+                      {r.hasCube ? (pCube && pCube.pcs_per_pan === 4 ? r.cubeAB : r.cubeAA) : ''}
                     </td>
                     
                     {/* Stick */}
@@ -1068,8 +1079,8 @@ export default function Home() {
                 <td id="sumCubeY">{Object.values(computedData).reduce((sum, r) => sum + r.cubeY, 0)}</td>
                 <td id="sumCubeAB" style={{ borderRight: '2px solid var(--border-color)' }}>
                   {Object.values(computedData).reduce((sum, r) => {
-                    const matchedProd = products.find(p => (p.product_name + (p.option_name || "")) === r.name);
-                    const pcs = matchedProd ? matchedProd.pcs_per_pan : 2;
+                    const pCube = products.find(p => p.product_name === r.name && p.shape_type === '미니큐브');
+                    const pcs = pCube ? pCube.pcs_per_pan : 2;
                     return sum + (pcs === 4 ? r.cubeAB : r.cubeAA);
                   }, 0)}
                 </td>

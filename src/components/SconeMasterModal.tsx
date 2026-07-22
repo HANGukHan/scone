@@ -43,6 +43,7 @@ interface SconeMasterModalProps {
   setShowPasswordChangeModal: (val: boolean) => void;
   handleLoadProductToForm: (p: Product) => void;
   handleOpenRegisterNewModal: (unmappedName: string) => void;
+  handleOpenMappingModal: (p: Product) => void;
 }
 
 export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
@@ -85,7 +86,8 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
   setEditingOvenVal,
   setShowPasswordChangeModal,
   handleLoadProductToForm,
-  handleOpenRegisterNewModal
+  handleOpenRegisterNewModal,
+  handleOpenMappingModal
 }) => {
   if (!show) return null;
 
@@ -318,6 +320,12 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
                         <td>
                           {!p.is_service ? (
                             <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                              <button 
+                                onClick={() => handleOpenMappingModal(p)}
+                                className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs px-2 py-1 rounded transition cursor-pointer"
+                              >
+                                🔗 매핑
+                              </button>
                               <button 
                                 onClick={() => handleLoadProductToForm(p)}
                                 className="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-xs px-2 py-1 rounded transition cursor-pointer"

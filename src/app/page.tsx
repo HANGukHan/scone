@@ -9,6 +9,7 @@ import { ProductionTable } from '../components/ProductionTable';
 import { OvenBatchTable } from '../components/OvenBatchTable';
 import { FooterMetrics } from '../components/FooterMetrics';
 import { NewProductRegisterModal } from '../components/NewProductRegisterModal';
+import { ProductMappingModal } from '../components/ProductMappingModal';
 
 export default function Home() {
   const {
@@ -91,7 +92,12 @@ export default function Home() {
     setShowRegisterNewModal,
     handleSelectMappingTarget,
     handleConfirmMapping,
-    handleOpenRegisterNewModal
+    handleOpenRegisterNewModal,
+    uploadedProductNames,
+    showMappingModal,
+    setShowMappingModal,
+    mappingProduct,
+    handleOpenMappingModal
   } = useSconeDashboard();
 
   useEffect(() => {
@@ -372,6 +378,7 @@ export default function Home() {
         setShowPasswordChangeModal={setShowPasswordChangeModal}
         handleLoadProductToForm={handleLoadProductToForm}
         handleOpenRegisterNewModal={handleOpenRegisterNewModal}
+        handleOpenMappingModal={handleOpenMappingModal}
       />
 
       {/* New Product Register Modal */}
@@ -399,6 +406,17 @@ export default function Home() {
         setNewSconeCompositionType={setNewSconeCompositionType}
         newSconePackageComponents={newSconePackageComponents}
         setNewSconePackageComponents={setNewSconePackageComponents}
+      />
+
+      {/* Product Mapping Modal */}
+      <ProductMappingModal 
+        show={showMappingModal}
+        onClose={() => setShowMappingModal(false)}
+        product={mappingProduct}
+        uploadedProductNames={uploadedProductNames}
+        unregisteredScones={unregisteredScones}
+        products={products}
+        onSave={handleSaveInlineAliases}
       />
 
     </div>

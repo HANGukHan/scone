@@ -226,6 +226,11 @@ export function useSconeDashboard() {
   const [mappingSelections, setMappingSelections] = useState<Record<string, string>>({});
   const [showRegisterNewModal, setShowRegisterNewModal] = useState<boolean>(false);
   
+  // Mapping Modal States
+  const [uploadedProductNames, setUploadedProductNames] = useState<string[]>([]);
+  const [showMappingModal, setShowMappingModal] = useState<boolean>(false);
+  const [mappingProduct, setMappingProduct] = useState<Product | null>(null);
+  
   // Password change states
   const [currentPasswordInput, setCurrentPasswordInput] = useState<string>('');
   const [newPasswordInput, setNewPasswordInput] = useState<string>('');
@@ -745,6 +750,12 @@ export function useSconeDashboard() {
         }
 
         console.log(`Excel Parsing Indices: headerRowIdx=${headerRowIdx}, nameColIdx=${nameColIdx}, optionColIdx=${optionColIdx}, qtyColIdx=${qtyColIdx}, statusColIdx=${statusColIdx}`);
+
+        const allRawNames = Array.from(new Set(rows.slice(startRow).map(row => {
+          if (!row || !Array.isArray(row)) return '';
+          return String(row[nameColIdx] || '').trim();
+        }).filter(Boolean)));
+        setUploadedProductNames(allRawNames);
 
         const parsed: any[] = [];
         const missingList: string[] = [];
@@ -1350,6 +1361,11 @@ export function useSconeDashboard() {
     setShowRegisterNewModal(true);
   }
 
+  function handleOpenMappingModal(p: Product) {
+    setMappingProduct(p);
+    setShowMappingModal(true);
+  }
+
   async function handleDeleteScone(id: string, name: string) {
     if (!confirm(`[${name}] 스콘 구성을 마스터 리스트에서 삭제하시겠습니까?`)) return;
     
@@ -1434,6 +1450,11 @@ export function useSconeDashboard() {
     mappingSelections,
     showRegisterNewModal,
     setShowRegisterNewModal,
+    uploadedProductNames,
+    showMappingModal,
+    setShowMappingModal,
+    mappingProduct,
+    setMappingProduct,
 
     // Pass change form states
     currentPasswordInput,
@@ -1477,6 +1498,7 @@ export function useSconeDashboard() {
     handleLoadProductToForm,
     handleSelectMappingTarget,
     handleConfirmMapping,
-    handleOpenRegisterNewModal
+    handleOpenRegisterNewModal,
+    handleOpenMappingModal
   };
 }

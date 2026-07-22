@@ -182,15 +182,8 @@ export const DEFAULT_ORDERS = [
 
 export function useSconeDashboard() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [orders, setOrders] = useState<Record<string, number>>(() => {
-    const nextOrders: Record<string, number> = {};
-    DEFAULT_ORDERS.forEach(r => {
-      const key = `${r.name}${r.option || ""}`;
-      nextOrders[key] = (nextOrders[key] || 0) + (r.qty || 0);
-    });
-    return nextOrders;
-  });
-  const [rawText, setRawText] = useState<string>(() => JSON.stringify(DEFAULT_ORDERS, null, 2));
+  const [orders, setOrders] = useState<Record<string, number>>({});
+  const [rawText, setRawText] = useState<string>('');
   
   // App States
   const [products, setProducts] = useState<Product[]>([]);
@@ -364,6 +357,14 @@ export function useSconeDashboard() {
 
   // Fetch initial master products
   useEffect(() => {
+    // Clear all localStorage and sessionStorage caches except credentials
+    const pw = localStorage.getItem('masterPassword');
+    const expiry = localStorage.getItem('masterAuthExpiry');
+    localStorage.clear();
+    sessionStorage.clear();
+    if (pw) localStorage.setItem('masterPassword', pw);
+    if (expiry) localStorage.setItem('masterAuthExpiry', expiry);
+
     async function loadMasterProducts() {
       if (hasValidSupabaseConfig) {
         try {

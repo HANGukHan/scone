@@ -1,0 +1,674 @@
+Row 4: P=""
+  Q: Value: null
+  R: Value: null
+  S: Value: null
+  T: Value: null
+  U: Value: null
+  V: Value: null
+  W: Value: null
+  X: Value: null
+  Y: Value: null
+  Z: Value: null
+  AA: Value: null
+  AB: Value: null
+  AC: Value: null
+  AD: Value: null
+  AE: Value: null
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: null
+  AK: Value: null
+
+Row 5: P="말차초코칩스콘"
+  Q: Formula: X5+AG5+AC5 (Result: 32)
+  R: Formula: J24 (Result: 252)
+  S: Value: 2
+  T: Formula: S5+AA5 (Result: 4)
+  U: Value: null
+  V: Formula: R5+S5-U5 (Result: 254)
+  W: Formula: ROUNDUP(V5/8,0) (Result: 32)
+  X: Formula: IF(((AE5=1)*AND(Y5>=4)),W5-0.5,W5+IF(AE5=1,0.5,0)) (Result: 32)
+  Y: Formula: W5*8-V5 (Result: 2)
+  Z: Value: 0
+  AA: Formula: IF((Y5+4*AE5)>=8,(Y5+4*AE5)-8,(Y5+4*AE5)) (Result: 2)
+  AB: Value: null
+  AC: Value: null
+  AD: Value: null
+  AE: Value: null
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: 170
+  AK: Formula: Q5*AJ5 (Result: 5440)
+
+Row 6: P="츄러스콘"
+  Q: Value: {"result":37,"sharedFormula":"Q5"}
+  R: Formula: J4 (Result: 250)
+  S: Value: 2
+  T: Value: {"result":6,"sharedFormula":"T5"}
+  U: Value: null
+  V: Value: {"result":252,"sharedFormula":"V5"}
+  W: Value: {"result":32,"sharedFormula":"W5"}
+  X: Value: {"result":32,"sharedFormula":"X5"}
+  Y: Value: {"result":4,"sharedFormula":"Y5"}
+  Z: Value: 0
+  AA: Value: {"result":4,"sharedFormula":"AA5"}
+  AB: Formula: ROUNDUP(J6/2,0) (Result: 2)
+  AC: Formula: IF(AE6=1,AB6-0.5,AB6) (Result: 2)
+  AD: Value: null
+  AE: Formula: AB6*2-J6 (Result: undefined)
+  AF: Value: null
+  AG: Formula: ROUNDUP((J49/9)+(J5/3),0) (Result: 3)
+  AH: Formula: (AG6*9-(J49+J5*3)) (Result: undefined)
+  AJ: Value: 174
+  AK: Value: {"result":6438,"sharedFormula":"AK5"}
+
+Row 7: P="데이츠치아씨드스콘"
+  Q: Formula: X7+AG7+AC7 (Result: 20)
+  R: Formula: J7 (Result: 106)
+  S: Value: 2
+  T: Formula: S7+AA7 (Result: 2)
+  U: Value: null
+  V: Formula: R7+S7-U7 (Result: 108)
+  W: Formula: ROUNDUP(V7/8,0) (Result: 14)
+  X: Formula: IF(((AE7=1)*AND(Y7>=4)),W7-0.5,W7+IF(AE7=1,0.5,0)) (Result: 13.5)
+  Y: Formula: W7*8-V7 (Result: 4)
+  Z: Value: 0
+  AA: Formula: IF((Y7+4*AE7)>=8,(Y7+4*AE7)-8,(Y7+4*AE7)) (Result: undefined)
+  AB: Formula: ROUNDUP(J9/2,0) (Result: 1)
+  AC: Formula: IF(AE7=1,AB7-0.5,AB7) (Result: 0.5)
+  AD: Value: null
+  AE: Formula: AB7*2-J9 (Result: 1)
+  AF: Value: null
+  AG: Formula: ROUNDUP(J8/3,0) (Result: 6)
+  AH: Formula: (AG7*9-J8*3) (Result: undefined)
+  AJ: Value: 160
+  AK: Formula: Q7*AJ7 (Result: 3200)
+
+Row 8: P="바닐라피칸스콘"
+  Q: Formula: X8+AG8+AC8 (Result: 59)
+  R: Formula: J13 (Result: 358)
+  S: Value: 2
+  T: Formula: S8+AA8 (Result: 2)
+  U: Value: null
+  V: Formula: R8+S8-U8 (Result: 360)
+  W: Formula: ROUNDUP(V8/8,0) (Result: 45)
+  X: Formula: IF(((AE8=1)*AND(Y8>=4)),W8-0.5,W8+IF(AE8=1,0.5,0)) (Result: 45)
+  Y: Formula: W8*8-V8 (Result: undefined)
+  Z: Value: 0
+  AA: Formula: IF((Y8+4*AE8)>=8,(Y8+4*AE8)-8,(Y8+4*AE8)) (Result: undefined)
+  AB: Formula: ROUNDUP(J15/2,0) (Result: 4)
+  AC: Formula: IF(AE8=1,AB8-0.5,AB8) (Result: 4)
+  AD: Value: null
+  AE: Formula: AB8*2-J15 (Result: undefined)
+  AF: Value: null
+  AG: Formula: ROUNDUP((J49/9)+(J14/3),0) (Result: 10)
+  AH: Formula: (AG8*9-(J49+J14*3)) (Result: 3)
+  AJ: Value: 170
+  AK: Formula: Q8*AJ8 (Result: 10030)
+
+Row 9: P="버터밀크비스킷스콘"
+  Q: Formula: X9+AG9+AC9 (Result: 29)
+  R: Formula: J42 (Result: 155)
+  S: Value: 2
+  T: Formula: S9+AA9 (Result: 9)
+  U: Value: null
+  V: Formula: R9+S9-U9 (Result: 157)
+  W: Formula: ROUNDUP(V9/8,0) (Result: 20)
+  X: Formula: IF(((AE9=1)*AND(Y9>=4)),W9-0.5,W9+IF(AE9=1,0.5,0)) (Result: 20.5)
+  Y: Formula: W9*8-V9 (Result: 3)
+  Z: Value: 0
+  AA: Formula: IF((Y9+4*AE9)>=8,(Y9+4*AE9)-8,(Y9+4*AE9)) (Result: 7)
+  AB: Formula: ROUNDUP(J44/2,0) (Result: 3)
+  AC: Formula: IF(AE9=1,AB9-0.5,AB9) (Result: 2.5)
+  AD: Value: null
+  AE: Formula: AB9*2-J44 (Result: 1)
+  AF: Value: null
+  AG: Formula: ROUNDUP(J43/3,0) (Result: 6)
+  AH: Formula: (AG9*9-J43*3) (Result: 6)
+  AJ: Value: 130
+  AK: Formula: Q9*AJ9 (Result: 3770)
+
+Row 10: P=""
+  Q: Value: null
+  R: Value: null
+  S: Value: null
+  T: Value: null
+  U: Value: null
+  V: Value: null
+  W: Value: null
+  X: Value: null
+  Y: Value: null
+  Z: Value: null
+  AA: Value: null
+  AB: Value: null
+  AC: Value: null
+  AD: Value: null
+  AE: Value: null
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: null
+  AK: Value: null
+
+Row 11: P=""
+  Q: Value: null
+  R: Value: null
+  S: Value: null
+  T: Value: null
+  U: Value: null
+  V: Value: null
+  W: Value: null
+  X: Value: null
+  Y: Value: null
+  Z: Value: null
+  AA: Value: null
+  AB: Value: null
+  AC: Value: null
+  AD: Value: null
+  AE: Value: null
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: null
+  AK: Value: null
+
+Row 12: P="[미니쉐이크]쑥인절미"
+  Q: Formula: AC12 (Result: 2)
+  R: Value: null
+  S: Value: null
+  T: Value: null
+  U: Value: null
+  V: Value: null
+  W: Value: null
+  X: Value: null
+  Y: Value: null
+  Z: Value: 0
+  AA: Value: null
+  AB: Formula: ROUNDUP((J25+J49)/4,0) (Result: 2)
+  AC: Formula: IF(AD12>0,IF(AE12>=4,AB12-1,AB12),AB12) (Result: 2)
+  AD: Value: null
+  AE: Formula: AB12*4-J25-J49+AD12 (Result: undefined)
+  AF: Formula: IF(AD12>0,IF(AE12>=4,AE12-4,AE12),AE12) (Result: undefined)
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: 190
+  AK: Formula: Q12*AJ12 (Result: 380)
+
+Row 13: P="데솔오트밀바"
+  Q: Formula: X13+AG13+AC13 (Result: 33)
+  R: Formula: J16 (Result: 293)
+  S: Value: 2
+  T: Formula: S13+AA13 (Result: 2)
+  U: Value: null
+  V: Formula: R13+S13-U13 (Result: 295)
+  W: Formula: ROUNDUP(V13/10,0) (Result: 30)
+  X: Formula: IF(((AE13=1)*AND(Y13>=5)),W13-0.5,W13+IF(AE13=1,0.5,0)) (Result: 29.5)
+  Y: Formula: W13*10-V13 (Result: 5)
+  Z: Value: 0
+  AA: Formula: IF((Y13+5*AE13)>=10,(Y13+5*AE13)-10,(Y13+5*AE13)) (Result: undefined)
+  AB: Formula: ROUNDUP(J17/2,0) (Result: 4)
+  AC: Formula: IF(AE13=1,AB13-0.5,AB13) (Result: 3.5)
+  AD: Value: null
+  AE: Formula: AB13*2-J17 (Result: 1)
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: 160
+  AK: Value: {"result":5280,"sharedFormula":"AK12"}
+
+Row 14: P="[미니쉐이크]카카오파베"
+  Q: Formula: AC14 (Result: 4)
+  R: Value: null
+  S: Value: null
+  T: Value: null
+  U: Value: null
+  V: Value: null
+  W: Value: null
+  X: Value: null
+  Y: Value: null
+  Z: Value: null
+  AA: Value: null
+  AB: Formula: ROUNDUP((J26/4),0) (Result: 4)
+  AC: Formula: IF(AD14>0,IF(AE14>=4,AB14-1,AB14),AB14) (Result: 4)
+  AD: Value: null
+  AE: Formula: AB14*4-J26+AD14 (Result: 1)
+  AF: Formula: IF(AD14>0,IF(AE14>=4,AE14-4,AE14),AE14) (Result: 1)
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: 180
+  AK: Formula: Q14*AJ14 (Result: 720)
+
+Row 15: P="카카오스콘"
+  Q: Formula: X15+AG15+AC15 (Result: 34)
+  R: Formula: J10 (Result: 193)
+  S: Value: 2
+  T: Formula: S15+AA15 (Result: 3)
+  U: Value: null
+  V: Formula: R15+S15-U15 (Result: 195)
+  W: Formula: ROUNDUP(V15/8,0) (Result: 25)
+  X: Formula: IF(((AE15=1)*AND(Y15>=4)),W15-0.5,W15+IF(AE15=1,0.5,0)) (Result: 24.5)
+  Y: Formula: W15*8-V15 (Result: 5)
+  Z: Value: 0
+  AA: Formula: IF((Y15+4*AE15)>=8,(Y15+4*AE15)-8,(Y15+4*AE15)) (Result: 1)
+  AB: Formula: ROUNDUP(J12/2,0) (Result: 3)
+  AC: Formula: IF(AE15=1,AB15-0.5,AB15) (Result: 2.5)
+  AD: Value: null
+  AE: Formula: AB15*2-J12 (Result: 1)
+  AF: Value: null
+  AG: Formula: ROUNDUP(J11/3,0) (Result: 7)
+  AH: Formula: (AG15*9-J11*3) (Result: 6)
+  AJ: Value: 180
+  AK: Value: {"result":6120,"sharedFormula":"AK14"}
+
+Row 16: P="OXO스콘"
+  Q: Value: {"result":61,"sharedFormula":"Q15"}
+  R: Formula: J39+J49 (Result: 396)
+  S: Value: 2
+  T: Value: {"result":8,"sharedFormula":"T15"}
+  U: Value: null
+  V: Value: {"result":398,"sharedFormula":"V15"}
+  W: Value: {"result":50,"sharedFormula":"W15"}
+  X: Value: {"result":50.5,"sharedFormula":"X15"}
+  Y: Value: {"result":2,"sharedFormula":"Y15"}
+  Z: Value: 0
+  AA: Value: {"result":6,"sharedFormula":"AA15"}
+  AB: Formula: ROUNDUP(J41/2,0) (Result: 5)
+  AC: Value: {"result":4.5,"sharedFormula":"AC15"}
+  AD: Value: null
+  AE: Formula: AB16*2-J41 (Result: 1)
+  AF: Value: null
+  AG: Formula: ROUNDUP(J40/3,0) (Result: 6)
+  AH: Formula: (AG16*9-J40*3) (Result: 3)
+  AJ: Value: 150
+  AK: Value: {"result":9150,"sharedFormula":"AK14"}
+
+Row 17: P="순수오트스콘"
+  Q: Value: {"result":12,"sharedFormula":"Q15"}
+  R: Formula: J20 (Result: 87)
+  S: Value: 2
+  T: Value: {"result":5,"sharedFormula":"T15"}
+  U: Value: null
+  V: Value: {"result":89,"sharedFormula":"V15"}
+  W: Value: {"result":12,"sharedFormula":"W15"}
+  X: Value: {"result":11.5,"sharedFormula":"X15"}
+  Y: Value: {"result":7,"sharedFormula":"Y15"}
+  Z: Value: 0
+  AA: Value: {"result":3,"sharedFormula":"AA15"}
+  AB: Formula: ROUNDUP(J21/2,0) (Result: 1)
+  AC: Value: {"result":0.5,"sharedFormula":"AC15"}
+  AD: Value: null
+  AE: Formula: AB17*2-J21 (Result: 1)
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: 140
+  AK: Value: {"result":1680,"sharedFormula":"AK14"}
+
+Row 18: P="귀리초코칩스콘"
+  Q: Value: {"result":30,"sharedFormula":"Q15"}
+  R: Formula: J18+J49 (Result: 222)
+  S: Value: 2
+  T: Value: {"result":2,"sharedFormula":"T15"}
+  U: Value: null
+  V: Value: {"result":224,"sharedFormula":"V15"}
+  W: Value: {"result":28,"sharedFormula":"W15"}
+  X: Value: {"result":28,"sharedFormula":"X15"}
+  Y: Value: {"sharedFormula":"Y15"}
+  Z: Value: 0
+  AA: Value: {"sharedFormula":"AA15"}
+  AB: Formula: ROUNDUP(J19/2,0) (Result: 2)
+  AC: Value: {"result":2,"sharedFormula":"AC15"}
+  AD: Value: null
+  AE: Formula: AB18*2-J19 (Result: undefined)
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: 180
+  AK: Value: {"result":5400,"sharedFormula":"AK14"}
+
+Row 19: P="딥카카오트스콘"
+  Q: Value: {"result":1,"sharedFormula":"Q15"}
+  R: Formula: J52 (Result: undefined)
+  S: Value: 2
+  T: Value: {"result":8,"sharedFormula":"T15"}
+  U: Value: null
+  V: Value: {"result":2,"sharedFormula":"V15"}
+  W: Value: {"result":1,"sharedFormula":"W15"}
+  X: Value: {"result":1,"sharedFormula":"X15"}
+  Y: Value: {"result":6,"sharedFormula":"Y15"}
+  Z: Value: 0
+  AA: Value: {"result":6,"sharedFormula":"AA15"}
+  AB: Formula: ROUNDUP(J53/2,0) (Result: undefined)
+  AC: Value: {"sharedFormula":"AC15"}
+  AD: Value: null
+  AE: Formula: AB19*2-J53 (Result: undefined)
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: 130
+  AK: Value: {"result":130,"sharedFormula":"AK14"}
+
+Row 20: P="더티너티밤스콘"
+  Q: Value: {"result":72,"sharedFormula":"Q15"}
+  R: Formula: J46 (Result: 429)
+  S: Value: 2
+  T: Value: {"result":7,"sharedFormula":"T15"}
+  U: Value: null
+  V: Value: {"result":431,"sharedFormula":"V15"}
+  W: Value: {"result":54,"sharedFormula":"W15"}
+  X: Value: {"result":54.5,"sharedFormula":"X15"}
+  Y: Value: {"result":1,"sharedFormula":"Y15"}
+  Z: Value: 0
+  AA: Value: {"result":5,"sharedFormula":"AA15"}
+  AB: Formula: ROUNDUP(J48/2,0) (Result: 6)
+  AC: Value: {"result":5.5,"sharedFormula":"AC15"}
+  AD: Value: null
+  AE: Formula: AB20*2-J48 (Result: 1)
+  AF: Value: null
+  AG: Formula: ROUNDUP(J47/3,0) (Result: 12)
+  AH: Formula: (AG20*9-J47*3) (Result: 6)
+  AJ: Value: 110
+  AK: Value: {"result":7920,"sharedFormula":"AK14"}
+
+Row 21: P="말차오트초코칩스콘"
+  Q: Value: {"result":17,"sharedFormula":"Q15"}
+  R: Formula: J50 (Result: 109)
+  S: Value: 2
+  T: Value: {"result":7,"sharedFormula":"T15"}
+  U: Value: null
+  V: Value: {"result":111,"sharedFormula":"V15"}
+  W: Value: {"result":14,"sharedFormula":"W15"}
+  X: Value: {"result":14.5,"sharedFormula":"X15"}
+  Y: Value: {"result":1,"sharedFormula":"Y15"}
+  Z: Value: 0
+  AA: Value: {"result":5,"sharedFormula":"AA15"}
+  AB: Formula: ROUNDUP(J51/2,0) (Result: 3)
+  AC: Value: {"result":2.5,"sharedFormula":"AC15"}
+  AD: Value: null
+  AE: Formula: AB21*2-J51 (Result: 1)
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: 125
+  AK: Value: {"result":2125,"sharedFormula":"AK14"}
+
+Row 22: P="베리초코칩스콘"
+  Q: Value: {"result":21,"sharedFormula":"Q15"}
+  R: Formula: J22 (Result: 137)
+  S: Value: 2
+  T: Value: {"result":7,"sharedFormula":"T15"}
+  U: Value: null
+  V: Value: {"result":139,"sharedFormula":"V15"}
+  W: Value: {"result":18,"sharedFormula":"W15"}
+  X: Value: {"result":18,"sharedFormula":"X15"}
+  Y: Value: {"result":5,"sharedFormula":"Y15"}
+  Z: Value: 0
+  AA: Value: {"result":5,"sharedFormula":"AA15"}
+  AB: Formula: ROUNDUP(J23/2,0) (Result: 3)
+  AC: Value: {"result":3,"sharedFormula":"AC15"}
+  AD: Value: null
+  AE: Formula: AB22*2-J23 (Result: undefined)
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: 140
+  AK: Value: {"result":2940,"sharedFormula":"AK14"}
+
+Row 23: P=""
+  Q: Value: null
+  R: Value: null
+  S: Value: null
+  T: Value: null
+  U: Value: null
+  V: Value: null
+  W: Value: null
+  X: Value: null
+  Y: Value: null
+  Z: Value: null
+  AA: Value: null
+  AB: Value: null
+  AC: Value: null
+  AD: Value: null
+  AE: Value: null
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: null
+  AK: Value: null
+
+Row 24: P="스콘 합계"
+  Q: Formula: "총 " & SUM(Q4:Q23) & "판" (Result: 총 464판)
+  R: Value: null
+  S: Formula: SUM(S4:S23) (Result: 28)
+  T: Formula: SUM(T4:T23) (Result: 72)
+  U: Value: null
+  V: Formula: SUM(V4:V23) (Result: 3015)
+  W: Formula: SUM(W4:W23) (Result: 375)
+  X: Formula: SUM(X4:X23) (Result: 375)
+  Y: Value: null
+  Z: Value: null
+  AA: Formula: SUM(AA4:AA23) (Result: 44)
+  AB: Formula: SUM(AB4:AB23) (Result: 43)
+  AC: Formula: SUM(AC4:AC23) (Result: 39)
+  AD: Value: null
+  AE: Value: null
+  AF: Value: null
+  AG: Formula: SUM(AG4:AG23) (Result: 50)
+  AH: Formula: SUM(AH4:AH23) (Result: 24)
+  AJ: Value: null
+  AK: Value: null
+
+Row 25: P=""
+  Q: Value: null
+  R: Value: null
+  S: Value: null
+  T: Value: null
+  U: Value: null
+  V: Value: null
+  W: Value: null
+  X: Value: null
+  Y: Value: null
+  Z: Value: null
+  AA: Value: null
+  AB: Value: null
+  AC: Value: null
+  AD: Value: null
+  AE: Value: null
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: null
+  AK: Value: null
+
+Row 26: P="휩드생크림"
+  Q: Value: "발송건수"
+  R: Value: null
+  S: Value: null
+  T: Value: "OPP(식사)"
+  U: Value: null
+  V: Value: "그릭요거트"
+  W: Value: null
+  X: Value: "대파분태"
+  Y: Value: null
+  Z: Value: "스무스"
+  AA: Value: null
+  AB: Value: null
+  AC: Value: "크런치"
+  AD: Value: null
+  AE: Value: null
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: null
+  AK: Value: null
+
+Row 27: P="[object Object]"
+  Q: Value: null
+  R: Value: null
+  S: Value: null
+  T: Formula: J36 (Result: undefined)
+  U: Value: null
+  V: Formula: J33 (Result: undefined)
+  W: Value: null
+  X: Formula: J32 (Result: undefined)
+  Y: Value: null
+  Z: Formula: J34 (Result: 7)
+  AA: Value: null
+  AB: Value: null
+  AC: Formula: J35 (Result: undefined)
+  AD: Value: null
+  AE: Value: null
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: null
+  AK: Value: null
+
+Row 28: P="추가량 + 남는량"
+  Q: Value: "부족 서비스"
+  R: Value: "남는 서비스"
+  S: Value: null
+  T: Value: "이매진"
+  U: Value: null
+  V: Value: "종이가방 "
+  W: Value: null
+  X: Value: "스타터팩"
+  Y: Value: null
+  Z: Value: "파베(봉)"
+  AA: Value: null
+  AB: Value: null
+  AC: Value: "인절미(봉)"
+  AD: Value: null
+  AE: Value: null
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: null
+  AK: Value: null
+
+Row 29: P="[object Object]"
+  Q: Formula: IF(O29-P29>=0,O29-P29,"없음") (Result: 14)
+  R: Formula: IF(O29-P29<0,-(O29-P29),"없음") (Result: 없음)
+  S: Value: null
+  T: Formula: J37 (Result: undefined)
+  U: Value: null
+  V: Formula: J38 (Result: undefined)
+  W: Value: null
+  X: Formula: J49 (Result: 3)
+  Y: Value: null
+  Z: Formula: J26 (Result: 15)
+  AA: Value: null
+  AB: Value: null
+  AC: Formula: J25+J49 (Result: 8)
+  AD: Value: null
+  AE: Value: null
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: null
+  AK: Value: null
+
+Row 30: P=""
+  Q: Value: null
+  R: Value: null
+  S: Value: null
+  T: Value: null
+  U: Value: null
+  V: Value: null
+  W: Value: null
+  X: Value: null
+  Y: Value: null
+  Z: Value: null
+  AA: Value: null
+  AB: Value: null
+  AC: Value: null
+  AD: Value: null
+  AE: Value: null
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: null
+  AK: Value: null
+
+Row 31: P=""
+  Q: Value: null
+  R: Value: null
+  S: Value: null
+  T: Value: null
+  U: Value: null
+  V: Value: null
+  W: Value: null
+  X: Value: null
+  Y: Value: null
+  Z: Value: null
+  AA: Value: null
+  AB: Value: null
+  AC: Value: null
+  AD: Value: null
+  AE: Value: null
+  AF: Value: null
+  AG: Value: null
+  AH: Value: null
+  AJ: Value: null
+  AK: Value: null
+
+--- LOOKUP TABLE (Columns G-J) ---
+Row 4: G="츄러스콘", H="-통밀츄러스콘", I=null, J=Formula: IFERROR(VLOOKUP(H4&I4,$A$3:$D$101,4,0),0) (Result: 250)
+Row 5: G=null, H="----[세트]통밀츄러스틱 3팩", I=null, J=Formula: IFERROR(VLOOKUP(H5&I5,$A$3:$D$101,4,0),0) (Result: 8)
+Row 6: G=null, H="-----[하프팩]통밀츄러미니큐브", I=null, J=Formula: IFERROR(VLOOKUP(H6&I6,$A$3:$D$101,4,0),0) (Result: 4)
+Row 7: G="데이츠", H="-데이츠치아씨드스콘", I=null, J=Formula: IFERROR(VLOOKUP(H7&I7,$A$3:$D$101,4,0),0) (Result: 106)
+Row 8: G=null, H="----[세트]데치스틱 3팩", I=null, J=Value: {"result":18,"sharedFormula":"J7"}
+Row 9: G=null, H="-----[하프팩]데치미니큐브", I=null, J=Value: {"result":1,"sharedFormula":"J7"}
+Row 10: G="카카오", H="-카카오스콘", I=null, J=Formula: IFERROR(VLOOKUP(H10&I10,$A$3:$D$68,4,0),0) (Result: 193)
+Row 11: G=null, H="----[세트]카카오스틱 3팩", I=null, J=Formula: IFERROR(VLOOKUP(H11&I11,$A$3:$D$68,4,0),0) (Result: 19)
+Row 12: G=null, H="-----[하프팩]카카오미니큐브", I=null, J=Formula: IFERROR(VLOOKUP(H12&I12,$A$3:$D$101,4,0),0) (Result: 5)
+Row 13: G="바피", H="-바닐라피칸스콘", I=null, J=Value: {"result":358,"sharedFormula":"J12"}
+Row 14: G=null, H="----[세트]바닐라피칸스틱 3팩", I=null, J=Value: {"result":28,"sharedFormula":"J12"}
+Row 15: G=null, H="-----[하프팩]바닐라피칸미니큐브", I=null, J=Value: {"result":8,"sharedFormula":"J12"}
+Row 16: G="데솔오바", H="-데솔오트밀바", I=null, J=Value: {"result":293,"sharedFormula":"J12"}
+Row 17: G=null, H="-----[하프팩]데솔오바미니큐브", I=null, J=Value: {"result":7,"sharedFormula":"J12"}
+Row 18: G="귀초칩", H="-귀리초코칩스콘", I=null, J=Formula: IFERROR(VLOOKUP(H18&I18,$A$3:$D$101,4,0),0) (Result: 219)
+Row 19: G=null, H="-----[하프팩]귀초칩미니큐브", I=null, J=Formula: IFERROR(VLOOKUP(H19&I19,$A$3:$D$101,4,0),0) (Result: 4)
+Row 20: G="순수오트", H="-순수오트스콘", I=null, J=Formula: IFERROR(VLOOKUP(H20&I20,$A$3:$D$101,4,0),0) (Result: 87)
+Row 21: G=null, H="-----[하프팩]순수오트미니큐브", I=null, J=Formula: IFERROR(VLOOKUP(H21&I21,$A$3:$D$101,4,0),0) (Result: 1)
+Row 22: G="베리초코", H="-베리초코칩스콘", I=null, J=Value: {"result":137,"sharedFormula":"J21"}
+Row 23: G=null, H="-----[하프팩]베리초코칩미니큐브", I=null, J=Value: {"result":6,"sharedFormula":"J21"}
+Row 24: G="말초", H="-말차초코칩스콘", I=null, J=Value: {"result":252,"sharedFormula":"J21"}
+Row 25: G=null, H="-----[미니쉐이크]쑥인절미", I=null, J=Value: {"result":5,"sharedFormula":"J21"}
+Row 26: G=null, H="-----[미니쉐이크]카카오파베", I=null, J=Value: {"result":15,"sharedFormula":"J21"}
+Row 27: G=null, H="------YOF6팩", I=null, J=Formula: IFERROR(VLOOKUP(H27&I27,$A$3:$D$101,4,0),0) (Result: 2)
+Row 28: G=null, H={"richText":[{"text":"------"},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"요프"},{"font":{"size":10,"name":"Arial","family":2},"text":" "},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"한"},{"font":{"size":10,"name":"Arial","family":2},"text":" "},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"가지"},{"font":{"size":10,"name":"Arial","family":2},"text":" "},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"맛"}]}, I="[단호박]", J=Formula: IFERROR(VLOOKUP(H28&I28,$A$3:$D$101,4,0),0) (Result: undefined)
+Row 29: G=null, H={"richText":[{"text":"------"},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"요프"},{"font":{"size":10,"name":"Arial","family":2},"text":" "},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"한"},{"font":{"size":10,"name":"Arial","family":2},"text":" "},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"가지"},{"font":{"size":10,"name":"Arial","family":2},"text":" "},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"맛"}]}, I="[ 말차]", J=Value: {"result":2,"sharedFormula":"J28"}
+Row 30: G=null, H={"richText":[{"text":"------"},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"요프"},{"font":{"size":10,"name":"Arial","family":2},"text":" "},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"한"},{"font":{"size":10,"name":"Arial","family":2},"text":" "},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"가지"},{"font":{"size":10,"name":"Arial","family":2},"text":" "},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"맛"}]}, I="[ 콩가루]", J=Value: {"result":1,"sharedFormula":"J28"}
+Row 31: G=null, H={"richText":[{"text":"------"},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"요프"},{"font":{"size":10,"name":"Arial","family":2},"text":" "},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"한"},{"font":{"size":10,"name":"Arial","family":2},"text":" "},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"가지"},{"font":{"size":10,"name":"Arial","family":2},"text":" "},{"font":{"size":10,"name":"돋움","family":3,"charset":129},"text":"맛"}]}, I="[ 흑임자]", J=Value: {"sharedFormula":"J28"}
+Row 32: G=null, H="------대파분태", I=null, J=Formula: IFERROR(VLOOKUP(H32&I32,$A$3:$D$101,4,0),0) (Result: undefined)
+Row 33: G=null, H="-----GREEK YOGURT", I=null, J=Value: {"sharedFormula":"J32"}
+Row 34: G=null, H="-------[Gourmet M]피넛머드", I="[스무스]", J=Value: {"result":7,"sharedFormula":"J32"}
+Row 35: G=null, H="-------[Gourmet M]피넛머드", I="[크런치]", J=Value: {"sharedFormula":"J32"}
+Row 36: G=null, H=" -------소분용 OPP 봉투 20매", I="[식사용]", J=Value: {"sharedFormula":"J32"}
+Row 37: G=null, H="이매진 머드", I=null, J=Formula: IFERROR(VLOOKUP(H37&I37,$A$3:$D$101,4,0),0) (Result: undefined)
+Row 38: G=null, H="-------선물용 종이가방", I=null, J=Formula: IFERROR(VLOOKUP(H38&I38,$A$3:$D$101,4,0),0) (Result: undefined)
+Row 39: G="OXO", H="-OXO스콘", I=null, J=Value: {"result":393,"sharedFormula":"J38"}
+Row 40: G=null, H="----[세트]OXO스틱 3팩", I=null, J=Value: {"result":17,"sharedFormula":"J38"}
+Row 41: G=null, H="-----[하프팩]OXO미니큐브", I=null, J=Value: {"result":9,"sharedFormula":"J38"}
+Row 42: G="버터밀크", H="-버터밀크비스킷스콘", I=null, J=Formula: IFERROR(VLOOKUP(H42&I42,$A$3:$D$101,4,0),0) (Result: 155)
+Row 43: G=null, H="----[세트]버터밀크비스킷스틱 3팩", I=null, J=Formula: IFERROR(VLOOKUP(H43&I43,$A$3:$D$101,4,0),0) (Result: 16)
+Row 44: G=null, H="-----[하프팩]버터밀크비스킷미니큐브", I=null, J=Formula: IFERROR(VLOOKUP(H44&I44,$A$3:$D$101,4,0),0) (Result: 5)
+Row 45: G=null, H="서비스스콘", I=null, J=Formula: IFERROR(VLOOKUP(H45&I45,$A$3:$D$101,4,0),0) (Result: 110)
+Row 46: G="더티너티", H="-더티너티밤스콘", I=null, J=Value: {"result":429,"sharedFormula":"J45"}
+Row 47: G=null, H="----[세트]더티너티밤스틱 3팩", I=null, J=Value: {"result":34,"sharedFormula":"J45"}
+Row 48: G=null, H="-----[하프팩]더티너티밤미니큐브", I=null, J=Value: {"result":11,"sharedFormula":"J45"}
+Row 49: G=null, H="스타터팩", I=null, J=Formula: IFERROR(VLOOKUP(H49&I49,$A$3:$D$101,4,0),0) (Result: 3)
+Row 50: G="말차오트", H="-말차오트초코칩스콘", I=null, J=Formula: IFERROR(VLOOKUP(H50&I50,$A$3:$D$101,4,0),0) (Result: 109)
+Row 51: G=null, H="-----[하프팩]말차오트초코칩미니큐브", I=null, J=Formula: IFERROR(VLOOKUP(H51&I51,$A$3:$D$101,4,0),0) (Result: 5)
+Row 52: G="딥카오트", H="-딥카카오트스콘", I=null, J=Formula: IFERROR(VLOOKUP(H52&I52,$A$3:$D$101,4,0),0) (Result: undefined)
+Row 53: G=null, H="-----[하프팩]딥카카오트미니큐브", I=null, J=Value: {"sharedFormula":"J52"}
+Row 54: G=null, H="---단호밤너티밤스콘", I=null, J=Value: {"sharedFormula":"J52"}
+Row 55: G=null, H="---오렌지블라썸스틱", I=null, J=Value: {"sharedFormula":"J52"}
+Row 56: G=null, H="---쑥인절미꿀호떡스콘", I=null, J=Value: {"result":129,"sharedFormula":"J52"}
+Row 57: G=null, H="---베리코코미니쉐이크", I=null, J=Value: {"sharedFormula":"J52"}
+Row 58: G=null, H="---스윗밀크티너티밤스콘", I=null, J=Value: {"sharedFormula":"J52"}
+Row 59: G=null, H=null, I=null, J=Value: null
+Row 60: G=null, H=null, I=null, J=Value: null

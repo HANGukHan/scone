@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스콘 생산량 관리 시스템 (menu1)</title>
+  <meta name="description" content="엑셀 menu1 기반 생산량표 계산 및 A4 출력 최적화 대시보드">
+  
+  <!-- Modern Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- SheetJS library -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+    
+    <!-- 1. Header (PC & Mobile Web Controls) -->
+    <header class="no-print">
+      <div class="brand">
+        <h1>스콘 생산량 관리 시스템 (menu1 기반)</h1>
+        <p>간소화된 수식 필드 및 오븐별 삼각(바) 판수 실시간 연산 적용</p>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+        <button id="themeToggle" class="theme-toggle-btn">
+          <span>🌙</span> Dark Theme
+        </button>
+        <button onclick="printPage('page1');" class="btn btn-secondary">
+          <span>🖨️</span> 메인생산량표 인쇄
+        </button>
+        <button onclick="printPage('page2');" class="btn btn-secondary">
+          <span>🖨️</span> 오븐집계표 인쇄
+        </button>
+        <button onclick="printPage('all');" class="btn btn-primary">
+          <span>🖨️</span> 전체 인쇄 (A4 2장)
+        </button>
+      </div>
+    </header>
+
+    <!-- 2. Actions Area: Upload & Manual JSON Input (Hidden in print) -->
+    <div class="io-panel no-print">
+      <!-- File Upload Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>📂 엑셀 파일 업로드 (Test1 원본)</span>
+          <small style="color: var(--text-muted);">XLSX, XLS 파일 지원</small>
+        </div>
+        <div id="dropZone" class="upload-zone">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <span>이곳에 엑셀 파일을 드래그하거나 클릭하여 업로드하세요.</span>
+          <small>발송대기 데이터 (Test1) 형태의 파일이 자동으로 정렬됩니다.</small>
+          <input type="file" id="fileInput" accept=".xlsx, .xls" style="display: none;" />
+        </div>
+        <div class="btn-group">
+          <button id="loadSampleBtn" class="btn btn-secondary">
+            <span>⚡</span> 샘플 데이터 로드
+          </button>
+        </div>
+      </div>
+
+      <!-- Raw Text Area Input Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>📝 텍스트 / JSON 수동 입력</span>
+          <small style="color: var(--text-muted);">JSON 또는 CSV 데이터 붙여넣기</small>
+        </div>
+        <textarea id="rawTextarea" class="raw-input-textarea" placeholder='[{"name": "-말차초코칩스콘", "qty": 252}, ...]'></textarea>
+        <div class="btn-group">
+          <button id="parseRawBtn" class="btn btn-primary">
+            <span>⚙️</span> 수동 데이터 계산
+          </button>
+          <button id="clearDataBtn" class="btn btn-secondary">
+            <span>🗑️</span> 초기화
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Service Scone Warning Alert Banner (Real-time trigger) -->
+    <div id="alertBanner" class="alert-banner" style="display: none;">
+      <div class="alert-content">
+        <span class="alert-icon">⚠️</span>
+        <div class="alert-text">
+          <h4>서비스 스콘 부족 경고</h4>
+          <p id="alertDescription">서비스스콘 주문량 대비 추가/남는 스콘이 부족합니다. 삼각스콘의 생산 판수를 임의 증량하여 부족량을 해소하세요.</p>
+        </div>
+      </div>
+      <div class="no-print">
+        <small style="color: var(--text-muted); font-size: 11px; margin-right: 8px;">삼각스콘의 '수동조정' 열을 수정하십시오.</small>
+      </div>
+    </div>
+
+    <!-- 4. Real-time KPI Card Deck (Hidden in print) -->
+    <div class="summary-grid no-print">
+      <div class="summary-card">
+        <div class="summary-icon-container blue">📦</div>
+        <div class="summary-info">
+          <span class="summary-label">총 생산 판수</span>
+          <span class="summary-value" id="kpiTotalPans">0 판</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon-container green">🥛</div>
+        <div class="summary-info">
+          <span class="summary-label">생크림 총 소요량</span>
+          <span class="summary-value" id="kpiCream">0 L</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon-container amber">🎁</div>
+        <div class="summary-info">
+          <span class="summary-label">서비스 주문량 / 남는스콘</span>
+          <span class="summary-value" id="kpiServiceRatio">0 / 0</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-icon-container rose">⚠️</div>
+        <div class="summary-info">
+          <span class="summary-label">서비스 부족 수량</span>
+          <span class="summary-value" id="kpiServiceShortage">0 개</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 1 ================= -->
+    <div class="page-1">
+      <div class="section-title">
+        <span>📊</span> 1. 메인 생산량표 (대시보드 주요 영역)
+        <button id="addSpacerBtn" class="btn btn-secondary no-print" style="padding: 4px 12px; font-size: 12px; margin-left: 16px;">
+          <span>➕</span> 구분선/공백 추가
+        </button>
+        <span class="print-only" style="margin-left: auto; font-size: 10px; font-weight: normal; color: #555;" id="printDate1"></span>
+      </div>
+
+      <!-- Main production table -->
+      <div class="table-container">
+        <table id="mainProductionTable">
+          <thead>
+            <tr>
+              <th class="no-print col-drag-handle">정렬</th>
+              <th rowspan="2" class="hl-name" style="width: 190px;">품명</th>
+              <th colspan="2">오븐 번호</th>
+              <th rowspan="2" class="hl-pans" style="width: 70px;">총 판수</th>
+              <th colspan="5">삼각스콘 / 바스콘 (8개입 / 데솔 10개입)</th>
+              <th colspan="3">미니큐브 (하프팩 2봉입 / 쉐이크 4봉입)</th>
+              <th colspan="2">스틱스콘 (9팩입)</th>
+            </tr>
+            <tr>
+              <th class="no-print col-drag-handle"></th>
+              <th class="sub-th" style="width: 45px;">삼각</th>
+              <th class="sub-th" style="width: 45px;">스큐</th>
+              
+              <!-- Tri -->
+              <th class="sub-th" style="width: 50px;">주문량</th>
+              <th class="sub-th" style="width: 60px;">이월재고</th>
+              <th class="sub-th" style="width: 55px; background: rgba(16, 185, 129, 0.08) !important;">수동조정</th>
+              <th class="sub-th" style="width: 45px;">최종판</th>
+              <th class="sub-th" style="width: 45px;">최종남음</th>
+              
+              <!-- Cube -->
+              <th class="sub-th" style="width: 60px;">이월재고</th>
+              <th class="sub-th" style="width: 45px;">최종판</th>
+              <th class="sub-th" style="width: 50px;">남는봉</th>
+              
+              <!-- Stick -->
+              <th class="sub-th" style="width: 45px;">생산판</th>
+              <th class="sub-th" style="width: 50px;">남는팩</th>
+            </tr>
+          </thead>
+          <tbody id="productionTableBody">
+            <!-- Row data populated dynamically -->
+          </tbody>
+          <tfoot>
+            <tr style="background: var(--bg-surface-elevated); font-weight: bold; color: var(--text-primary);">
+              <td class="no-print col-drag-handle"></td>
+              <td class="hl-name" style="background: var(--bg-surface-elevated);">스콘 합계</td>
+              <td>-</td>
+              <td>-</td>
+              <td class="hl-pans" id="sumTotalPans">0</td>
+              
+              <!-- Tri sums -->
+              <td id="sumTriR">0</td>
+              <td>-</td>
+              <td>-</td>
+              <td id="sumTriU">0</td>
+              <td id="sumTriW">0</td>
+              
+              <!-- Cube sums -->
+              <td>-</td>
+              <td id="sumCubeY">0</td>
+              <td id="sumCubeAB">0</td>
+              
+              <!-- Stick sums -->
+              <td id="sumStickAC">0</td>
+              <td id="sumStickAD">0</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Lower layout: Sub-materials and service scones -->
+      <div class="footer-grid" style="margin-top: 24px;">
+        <!-- Sub materials list -->
+        <div class="card sub-materials-card">
+          <div class="card-title">
+            <span>📦 부자재 / 부속품 실시간 집계</span>
+            <small style="color: var(--text-secondary);">Test1 원본 주문량 기준 파싱</small>
+          </div>
+          <div class="grid-materials">
+            <div class="material-item">
+              <span>그릭요거트</span>
+              <strong id="matGreek">0 개</strong>
+            </div>
+            <div class="material-item">
+              <span>피넛머드 스무스</span>
+              <strong id="matSmooth">0 개</strong>
+            </div>
+            <div class="material-item">
+              <span>피넛머드 크런치</span>
+              <strong id="matCrunch">0 개</strong>
+            </div>
+            <div class="material-item">
+              <span>대파분태</span>
+              <strong id="matGreen">0 개</strong>
+            </div>
+            <div class="material-item">
+              <span>카카오파베(봉)</span>
+              <strong id="matPave">0 개</strong>
+            </div>
+            <div class="material-item">
+              <span>쑥인절미(봉)</span>
+              <strong id="matInjeolmi">0 개</strong>
+            </div>
+            <div class="material-item">
+              <span>스타터팩</span>
+              <strong id="matStarter">0 개</strong>
+            </div>
+            <div class="material-item">
+              <span>이매진 머드</span>
+              <strong id="matImagine">0 개</strong>
+            </div>
+            <div class="material-item">
+              <span>OPP 봉투 (식사용)</span>
+              <strong id="matOpp">0 개</strong>
+            </div>
+            <div class="material-item" style="background: var(--accent-glow); border-color: var(--accent-color);">
+              <span>생크림 총량</span>
+              <strong id="matCream" style="color: var(--accent-color);">0 L</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Service Scone aggregation -->
+        <div class="card">
+          <div class="card-title">
+            <span>🎁 서비스 스콘 &amp; 수량 검증 로직</span>
+            <small style="color: var(--text-secondary);">삼각 최종남음 + 스틱 남는량 검증</small>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="material-item" style="padding: 16px;">
+              <span>서비스스콘 총 주문량</span>
+              <strong id="svcOrdered" style="font-size: 20px;">0 개</strong>
+            </div>
+            <div class="material-item" style="padding: 16px;">
+              <span>최종남음 + 스틱남음 (여분스콘)</span>
+              <strong id="svcExtra" style="font-size: 20px;">0 개</strong>
+            </div>
+            <div class="material-item" style="padding: 16px; border-color: var(--danger-color); background: rgba(239, 68, 68, 0.05);">
+              <span>부족 서비스 수량</span>
+              <strong id="svcShortage" style="color: var(--danger-color); font-size: 20px;">0 개</strong>
+            </div>
+            <div class="material-item" style="padding: 16px; border-color: var(--success-color); background: rgba(16, 185, 129, 0.05);">
+              <span>남는 서비스 수량</span>
+              <strong id="svcLeftover" style="color: var(--success-color); font-size: 20px;">0 개</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 2 ================= -->
+    <div class="page-2">
+      <div class="section-title">
+        <span>🔥</span> 2. 오븐 번호별 삼각(바) 판수 상세 집계 (AL열~AN열 영역)
+        <span class="print-only" style="margin-left: auto; font-size: 10px; font-weight: normal; color: #555;" id="printDate2"></span>
+      </div>
+      
+      <!-- Oven breakdown table (AL~AR columns without AQ) -->
+      <div class="table-container">
+        <table id="ovenTable" style="width: 750px; margin: 0 auto;">
+          <thead>
+            <tr>
+              <th style="width: 250px;">상품명</th>
+              <th>오븐 번호</th>
+              <th>삼각(바) 판수 (A)</th>
+              <th>풀팬 (A ÷ 3)</th>
+              <th>풀팬 (3판)</th>
+              <th>남는 반죽 판수</th>
+            </tr>
+          </thead>
+          <tbody id="ovenTableBody">
+            <!-- Populated dynamically -->
+          </tbody>
+          <tfoot>
+            <tr style="background: var(--bg-surface-elevated); font-weight: bold; color: var(--text-primary);">
+              <td style="text-align: left; padding-left: 16px;">합계</td>
+              <td>-</td>
+              <td id="ovenSumA">0</td>
+              <td id="ovenSumFull">0</td>
+              <td id="ovenSumFull3">0</td>
+              <td id="ovenSumRem2">0</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

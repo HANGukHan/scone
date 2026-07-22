@@ -268,42 +268,65 @@ export default function Home() {
     return orders[key] || 0;
   }
 
+  // Helper to normalize hyphens and spaces
+  function normalize(str: string): string {
+    if (!str) return '';
+    return str.replace(/[-]/g, '').replace(/\s+/g, '').toLowerCase();
+  }
+
   // Lookup helper using master products database with alias mapping
   function getOrderQtyByMatch(product: Product) {
     let sumQty = 0;
 
     // Convert aliases string to array of clean lowercase strings
     const aliasList = product.aliases
-      ? product.aliases.split(',').map(a => a.trim().replace(/^[-]+/g, '').trim()).filter(Boolean)
+      ? product.aliases.split(',').map(a => normalize(a)).filter(Boolean)
       : [];
 
-    // Fallback default alias list based on name and option
-    const baseName = product.product_name.trim();
-    const optName = product.option_name ? product.option_name.trim() : "";
-    const defaultKey = `${baseName}${optName}`;
-    const defaultAliases = [defaultKey, baseName];
+    const baseName = product.product_name;
+    const baseNameNorm = normalize(baseName);
+    const optNameNorm = product.option_name ? normalize(product.option_name) : "";
+    const defaultKeyNorm = baseNameNorm + optNameNorm;
+
+    const fallbackKeys: string[] = [defaultKeyNorm, baseNameNorm];
     if (product.shape_type === '삼각스콘') {
-      defaultAliases.push(`-${baseName}`, `---${baseName}`);
+      fallbackKeys.push(normalize(`-${baseName}`), normalize(`---${baseName}`));
     } else if (product.shape_type === '미니큐브') {
-      defaultAliases.push(`-----[하프팩]${baseName.replace("스콘","")}미니큐브`);
-      defaultAliases.push(`-----[미니쉐이크]${baseName.replace("[미니쉐이크]","")}`);
+      fallbackKeys.push(normalize(`-----[하프팩]${baseName.replace("스콘","")}미니큐브`));
+      fallbackKeys.push(normalize(`-----[미니쉐이크]${baseName.replace("[미니쉐이크]","")}`));
     } else if (product.shape_type === '스틱스콘') {
-      defaultAliases.push(`----[세트]${baseName.replace("스콘","")}스틱 3팩`);
+      fallbackKeys.push(normalize(`----[세트]${baseName.replace("스콘","")}스틱 3팩`));
     }
 
-    const allAliases = Array.from(new Set([
+    const allNormalizedAliases = Array.from(new Set([
       ...aliasList,
-      ...defaultAliases.map(a => a.replace(/^[-]+/g, '').trim())
+      ...fallbackKeys.map(k => normalize(k))
     ]));
 
     // Check all orders in the orders map
     Object.entries(orders).forEach(([orderKey, qty]) => {
-      // Clean order name by stripping prefixes like "---" or "-"
-      const cleanOrderKey = orderKey.trim().replace(/^[-]+/g, '').trim();
+      const orderNorm = normalize(orderKey);
 
-      // Check if this clean order key matches any of our clean aliases
-      const isMatched = allAliases.some(alias => {
-        return cleanOrderKey.toLowerCase() === alias.toLowerCase();
+      // Shape Category Safety Check:
+      // - Mini Cube: order key must contain '큐브' or '쉐이크'
+      // - Stick: order key must contain '스틱'
+      // - Triangular: order key must NOT contain '큐브', '쉐이크', '스틱'
+      let shapeSafe = true;
+      if (product.shape_type === '미니큐브') {
+        shapeSafe = orderNorm.includes('큐브') || orderNorm.includes('쉐이크');
+      } else if (product.shape_type === '스틱스콘') {
+        shapeSafe = orderNorm.includes('스틱');
+      } else if (product.shape_type === '삼각스콘') {
+        shapeSafe = !orderNorm.includes('큐브') && !orderNorm.includes('쉐이크') && !orderNorm.includes('스틱');
+      }
+
+      if (!shapeSafe) return;
+
+      // Check for substring/inclusion matches
+      const isMatched = allNormalizedAliases.some(alias => {
+        if (!alias) return false;
+        // Exact normalized match OR substring containment checks
+        return orderNorm === alias || orderNorm.includes(alias) || alias.includes(orderNorm);
       });
 
       if (isMatched) {
@@ -527,28 +550,46 @@ export default function Home() {
             // Check if this product is mapped in our master database
             const matched = products.find(p => {
               const aliasList = p.aliases
-                ? p.aliases.split(',').map(a => a.trim().replace(/^[-]+/g, '').trim()).filter(Boolean)
+                ? p.aliases.split(',').map(a => normalize(a)).filter(Boolean)
                 : [];
-              const baseName = p.product_name.trim();
-              const optName = p.option_name ? p.option_name.trim() : "";
-              const defaultKey = `${baseName}${optName}`;
-              const defaultAliases = [defaultKey, baseName];
+              const baseName = p.product_name;
+              const baseNameNorm = normalize(baseName);
+              const optNameNorm = p.option_name ? normalize(p.option_name) : "";
+              const defaultKeyNorm = baseNameNorm + optNameNorm;
+
+              const fallbackKeys: string[] = [defaultKeyNorm, baseNameNorm];
               if (p.shape_type === '삼각스콘') {
-                defaultAliases.push(`-${baseName}`, `---${baseName}`);
+                fallbackKeys.push(normalize(`-${baseName}`), normalize(`---${baseName}`));
               } else if (p.shape_type === '미니큐브') {
-                defaultAliases.push(`-----[하프팩]${baseName.replace("스콘","")}미니큐브`);
-                defaultAliases.push(`-----[미니쉐이크]${baseName.replace("[미니쉐이크]","")}`);
+                fallbackKeys.push(normalize(`-----[하프팩]${baseName.replace("스콘","")}미니큐브`));
+                fallbackKeys.push(normalize(`-----[미니쉐이크]${baseName.replace("[미니쉐이크]","")}`));
               } else if (p.shape_type === '스틱스콘') {
-                defaultAliases.push(`----[세트]${baseName.replace("스콘","")}스틱 3팩`);
+                fallbackKeys.push(normalize(`----[세트]${baseName.replace("스콘","")}스틱 3팩`));
               }
 
-              const allAliases = Array.from(new Set([
+              const allNormalizedAliases = Array.from(new Set([
                 ...aliasList,
-                ...defaultAliases.map(a => a.replace(/^[-]+/g, '').trim())
+                ...fallbackKeys.map(k => normalize(k))
               ]));
 
-              const cleanOrderKey = trimmedName.replace(/^[-]+/g, '').trim();
-              return allAliases.some(alias => cleanOrderKey.toLowerCase() === alias.toLowerCase());
+              const orderNorm = normalize(trimmedName);
+
+              // Shape category safety check
+              let shapeSafe = true;
+              if (p.shape_type === '미니큐브') {
+                shapeSafe = orderNorm.includes('큐브') || orderNorm.includes('쉐이크');
+              } else if (p.shape_type === '스틱스콘') {
+                shapeSafe = orderNorm.includes('스틱');
+              } else if (p.shape_type === '삼각스콘') {
+                shapeSafe = !orderNorm.includes('큐브') && !orderNorm.includes('쉐이크') && !orderNorm.includes('스틱');
+              }
+
+              if (!shapeSafe) return false;
+
+              return allNormalizedAliases.some(alias => {
+                if (!alias) return false;
+                return orderNorm === alias || orderNorm.includes(alias) || alias.includes(orderNorm);
+              });
             });
 
             // If not found in database and is not standard spacer or service item
@@ -567,6 +608,13 @@ export default function Home() {
           }
         }
         
+        // Output debug console verification details
+        console.log("=== EXCEL UPLOAD MATCHING REPORT ===");
+        console.log(`Total rows processed: ${rows.length - 1}`);
+        console.log(`Parsed orders count: ${parsed.length}`);
+        console.log(`Unmatched (missing) items:`, missingList);
+        console.log("====================================");
+
         setUnregisteredScones(missingList);
         loadData(parsed);
       } catch (err: any) {
@@ -608,22 +656,41 @@ export default function Home() {
       return;
     }
 
-    const nextProduct: Omit<Product, 'id'> = {
-      product_name: newSconeName.trim(),
-      option_name: newSconeOption.trim() || null,
+    const prodNameClean = newSconeName.trim();
+    const optNameClean = newSconeOption.trim() || null;
+
+    // Check if configuration already exists in local state
+    const existing = products.find(p => p.product_name === prodNameClean && p.option_name === optNameClean);
+
+    // Merge aliases if existing
+    let mergedAliases = newSconeAliases.trim() || null;
+    if (existing) {
+      const existingList = existing.aliases ? existing.aliases.split(',').map(a => a.trim()).filter(Boolean) : [];
+      const newList = newSconeAliases.trim() ? newSconeAliases.trim().split(',').map(a => a.trim()).filter(Boolean) : [];
+      const combined = Array.from(new Set([...existingList, ...newList])).join(', ');
+      mergedAliases = combined || null;
+    }
+
+    const nextProduct: Omit<Product, 'id'> & { id?: string } = {
+      product_name: prodNameClean,
+      option_name: optNameClean,
       shape_type: newSconeShape,
       oven_number: parseInt(newSconeOven, 10) || null,
       pcs_per_pan: newSconeYield,
       cream_per_pan: newSconeCream,
       is_service: false,
-      aliases: newSconeAliases.trim() || null
+      aliases: mergedAliases
     };
+
+    if (existing) {
+      nextProduct.id = existing.id;
+    }
 
     if (hasValidSupabaseConfig) {
       try {
         const { data, error } = await supabase
           .from('products')
-          .insert([nextProduct])
+          .upsert([nextProduct])
           .select();
         
         if (error) {
@@ -633,12 +700,15 @@ export default function Home() {
             delete fallbackProduct.aliases;
             const { data: fbData, error: fbError } = await supabase
               .from('products')
-              .insert([fallbackProduct])
+              .upsert([fallbackProduct])
               .select();
             if (fbError) throw fbError;
             if (fbData) {
-              setProducts(prev => [...prev, fbData[0]]);
-              alert("스콘이 등록되었으나, Supabase DB에 'aliases' 열이 존재하지 않아 매칭 데이터는 누락되었습니다. schema.sql을 실행해 주세요!");
+              setProducts(prev => {
+                const filtered = prev.filter(p => p.id !== fbData[0].id && !(p.product_name === fbData[0].product_name && p.option_name === fbData[0].option_name));
+                return [...filtered, fbData[0]];
+              });
+              alert("스콘이 저장/수정되었으나, Supabase DB에 'aliases' 열이 존재하지 않아 매칭 데이터는 누락되었습니다. schema.sql을 실행해 주세요!");
               // Clear inputs
               setNewSconeName('');
               setNewSconeOption('');
@@ -650,20 +720,26 @@ export default function Home() {
           throw error;
         }
         if (data) {
-          setProducts(prev => [...prev, data[0]]);
-          alert("스콘이 Supabase DB에 성공적으로 등록되었습니다!");
+          setProducts(prev => {
+            const filtered = prev.filter(p => p.id !== data[0].id && !(p.product_name === data[0].product_name && p.option_name === data[0].option_name));
+            return [...filtered, data[0]];
+          });
+          alert("스콘 마스터 정보가 성공적으로 반영/수정되었습니다!");
         }
       } catch (err: any) {
-        alert("DB 등록 실패: " + err.message);
+        alert("DB 저장 실패: " + err.message);
       }
     } else {
       // Simulate locally
       const localNew: Product = {
-        id: "local-" + Date.now(),
+        id: existing ? existing.id : "local-" + Date.now(),
         ...nextProduct
-      };
-      setProducts(prev => [...prev, localNew]);
-      alert("스콘이 로컬 임시 마스터에 등록되었습니다! (Supabase 미연동)");
+      } as Product;
+      setProducts(prev => {
+        const filtered = prev.filter(p => p.id !== localNew.id && !(p.product_name === localNew.product_name && p.option_name === localNew.option_name));
+        return [...filtered, localNew];
+      });
+      alert("로컬 임시 마스터 정보가 수정/등록되었습니다! (Supabase 미연동)");
     }
 
     // Clear form inputs
@@ -673,7 +749,7 @@ export default function Home() {
     setNewSconeAliases('');
     
     // Remove from unregistered warning list if matched
-    setUnregisteredScones(prev => prev.filter(s => !s.includes(newSconeName)));
+    setUnregisteredScones(prev => prev.filter(s => !s.includes(prodNameClean)));
   }
 
   // DB Table Truncate / Clear function

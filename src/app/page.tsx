@@ -127,6 +127,7 @@ export default function Home() {
   const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false);
   const [showMasterModal, setShowMasterModal] = useState<boolean>(false);
   const [passwordInput, setPasswordInput] = useState<string>('');
+  const [pendingInstName, setPendingInstName] = useState<string | null>(null);
   
   // Password change states
   const [currentPasswordInput, setCurrentPasswordInput] = useState<string>('');
@@ -977,9 +978,19 @@ export default function Home() {
     e.preventDefault();
     const stored = localStorage.getItem('masterPassword') || '1234';
     if (passwordInput === stored) {
+      // Set session expiry to 1 hour (60 minutes) from now
+      localStorage.setItem('masterAuthExpiry', String(Date.now() + 60 * 60 * 1000));
+      
       setShowPasswordModal(false);
-      setShowMasterModal(true);
       setPasswordInput('');
+
+      if (pendingInstName) {
+        const targetName = pendingInstName;
+        setPendingInstName(null);
+        handleRegisterInstantly(targetName);
+      } else {
+        setShowMasterModal(true);
+      }
     } else {
       alert("비밀번호가 일치하지 않습니다.");
     }
@@ -1030,8 +1041,17 @@ export default function Home() {
     }
   }
 
-  // Pre-fill form from unregistered warning trigger
+  // Pre-fill form from unregistered warning trigger with authentication check
   function handleRegisterInstantly(rawUnregisteredName: string) {
+    const expiry = localStorage.getItem('masterAuthExpiry');
+    const isAuthValid = expiry ? Date.now() < parseInt(expiry, 10) : false;
+
+    if (!isAuthValid) {
+      setPendingInstName(rawUnregisteredName);
+      setShowPasswordModal(true);
+      return;
+    }
+
     // Strip prefixes to guess clean base name
     const cleanedName = rawUnregisteredName.replace(/^[-]+/g, "").replace("[하프팩]","").replace("[세트]","").replace("스틱","").replace("미니큐브","").replace(" 3팩","").trim();
     setNewSconeName(cleanedName);
@@ -1055,8 +1075,7 @@ export default function Home() {
       setNewSconeCream(170);
     }
     
-    // Scroll to form smoothly
-    crudSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setShowMasterModal(true);
   }
 
   // Drag and Drop implementation
@@ -1722,7 +1741,7 @@ export default function Home() {
           zIndex: 9999,
           padding: '20px'
         }}>
-          <div className="bg-[#0f172a] border border-white/10 rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
+          <div className="bg-[#0f172a] border border-white/10 rounded-2xl w-full max-w-6xl p-6 relative shadow-2xl" style={{ display: 'flex', flexDirection: 'column', height: '85vh', maxHeight: '90vh' }}>
             <button 
               onClick={() => setShowMasterModal(false)}
               style={{
@@ -1749,8 +1768,8 @@ export default function Home() {
               <span>🛠️ 스콘 마스터 관리 (Supabase DB 연동)</span>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="col-span-1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ flex: 1, overflow: 'hidden' }}>
+              <div className="col-span-1" style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', paddingRight: '4px' }}>
                 {/* Register Form Card */}
                 <div className="card">
                   <div className="card-title">스콘 마스터 등록</div>
@@ -1889,7 +1908,7 @@ export default function Home() {
               </div>
 
               {/* Master List Table */}
-              <div className="card col-span-2">
+              <div className="card col-span-2" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
                 <div className="card-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <span>등록된 스콘 마스터 목록</span>
@@ -1911,7 +1930,7 @@ export default function Home() {
                   </div>
                 </div>
                 
-                <div className="table-container" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                <div className="table-container" style={{ flex: 1, overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
                   <table>
                     <thead>
                       <tr style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-surface-elevated)' }}>

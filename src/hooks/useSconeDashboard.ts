@@ -700,88 +700,69 @@ export function useSconeDashboard() {
           throw new Error("엑셀 시트 내 데이터가 존재하지 않습니다.");
         }
 
-        let formatType: 'easyadmin' | 'raw_list' | 'summary' | null = null;
-        let startRow = 0;
-        let nameIdx = -1;
-        let optIdx = -1;
-        let qtyIdx = -1;
+        let headerRowIdx = -1;
+        let nameColIdx = -1;
+        let optionColIdx = -1;
+        let qtyColIdx = -1;
+        let statusColIdx = -1;
 
-        // Loop through the first few rows to auto-detect the headers and column indices
-        for (let i = 0; i < Math.min(10, rows.length); i++) {
+        // Find the header row containing both "상품명" and "수량"
+        for (let i = 0; i < rows.length; i++) {
           const row = rows[i];
-          if (!row || row.length === 0) continue;
-
-          // Detect Test1.xlsx format by headers
-          if (row.includes('상품명') && row.includes('옵션') && row.includes('수량')) {
-            const nIdx = row.indexOf('상품명');
-            const oIdx = row.indexOf('옵션');
-            const qIdx = row.indexOf('수량');
-            if (nIdx !== -1 && oIdx !== -1 && qIdx !== -1) {
-              nameIdx = nIdx;
-              optIdx = oIdx;
-              qtyIdx = qIdx;
-              formatType = 'raw_list';
-              startRow = i + 1;
-              break;
-            }
-          }
-
-          // Detect menu1.xlsx format by headers
-          if (row.includes('상품명') && row.includes('옵션') && row.includes('수량') && row.includes('관리명+옵션명')) {
-            nameIdx = 1;
-            optIdx = 2;
-            qtyIdx = 3;
-            formatType = 'summary';
-            startRow = i + 1;
+          if (!row || !Array.isArray(row)) continue;
+          
+          const hasNameHeader = row.some(cell => String(cell || '').includes("상품명"));
+          const hasQtyHeader = row.some(cell => String(cell || '').includes("수량"));
+          
+          if (hasNameHeader && hasQtyHeader) {
+            headerRowIdx = i;
+            const findExactOrIncludes = (rowArray: any[], term: string) => {
+              const exactIdx = rowArray.indexOf(term);
+              if (exactIdx !== -1) return exactIdx;
+              return rowArray.findIndex(cell => String(cell || '').includes(term));
+            };
+            nameColIdx = findExactOrIncludes(row, "상품명");
+            optionColIdx = findExactOrIncludes(row, "옵션");
+            qtyColIdx = findExactOrIncludes(row, "수량");
+            statusColIdx = row.findIndex(cell => String(cell || '').includes("상태") || String(cell || '').includes("매칭상태") || String(cell || '').includes("매칭"));
             break;
           }
         }
 
-        // Fallback or EasyAdmin format check if formatType is still null
-        if (!formatType) {
-          const hasEasyAdminStatus = rows.some(r => r && r[0] && (
-            String(r[0]).includes("매칭 완료") || 
-            String(r[0]).includes("매칭대기") || 
-            String(r[0]).includes("매칭오류") || 
-            String(r[0]).includes("취소")
-          ));
-          if (hasEasyAdminStatus) {
-            formatType = 'easyadmin';
-            nameIdx = 2;
-            optIdx = 3;
-            qtyIdx = 4;
-            startRow = 0; // Scan from beginning
-          }
+        let startRow = 0;
+        if (headerRowIdx !== -1) {
+          startRow = headerRowIdx + 1;
+        } else {
+          // Fallback defaults
+          nameColIdx = 4;
+          optionColIdx = 12;
+          qtyColIdx = 16;
+          startRow = 1;
         }
 
-        // Final default fallback
-        if (!formatType) {
-          formatType = 'easyadmin';
-          nameIdx = 2;
-          optIdx = 3;
-          qtyIdx = 4;
-          startRow = 0;
-        }
-
-        console.log(`Detected Excel Format: ${formatType}, startRow: ${startRow}, nameIdx: ${nameIdx}, optIdx: ${optIdx}, qtyIdx: ${qtyIdx}`);
+        console.log(`Excel Parsing Indices: headerRowIdx=${headerRowIdx}, nameColIdx=${nameColIdx}, optionColIdx=${optionColIdx}, qtyColIdx=${qtyColIdx}, statusColIdx=${statusColIdx}`);
 
         const parsed: any[] = [];
         const missingList: string[] = [];
 
         for (let i = startRow; i < rows.length; i++) {
           const row = rows[i];
-          if (!row) continue;
+          if (!row || !Array.isArray(row)) continue;
 
-          // If EasyAdmin format, filter by status
-          if (formatType === 'easyadmin') {
-            const status = String(row[0] || '').trim();
-            const isValidStatus = status.includes("매칭 완료") || status.includes("매칭대기") || status.includes("매칭오류") || status.includes("취소");
-            if (!isValidStatus) continue;
+          // If status column is found, filter out canceled orders
+          if (statusColIdx !== -1) {
+            const status = String(row[statusColIdx] || '').trim();
+            // Skip canceled orders
+            if (status.includes("취소")) continue;
+            
+            // For easyadmin format, we check if the status is one of valid statuses
+            const isEasyAdminStatus = status.includes("매칭 완료") || status.includes("매칭대기") || status.includes("매칭오류") || status.includes("취소");
+            if (isEasyAdminStatus && status.includes("취소")) continue;
           }
 
-          const rawName = String(row[nameIdx] || '').trim();
-          const option = String(row[optIdx] || '').trim();
-          const qty = parseInt(row[qtyIdx], 10) || 0;
+          const rawName = String(row[nameColIdx] || '').trim();
+          const option = optionColIdx !== -1 ? String(row[optionColIdx] || '').trim() : '';
+          const qty = parseInt(row[qtyColIdx], 10) || 0;
 
           const trimmedName = cleanString(rawName);
           if (!trimmedName || qty <= 0) continue;
@@ -835,13 +816,12 @@ export function useSconeDashboard() {
 
           parsed.push({
             name: trimmedName,
-            option: option && option !== 'undefined' ? String(option).trim() : null,
+            option: option && option !== 'undefined' && option !== 'null' ? String(option).trim() : null,
             qty: qty
           });
         }
         
         console.log("=== EXCEL UPLOAD MATCHING REPORT ===");
-        console.log(`Detected Format: ${formatType}`);
         console.log(`Total rows processed: ${rows.length - startRow}`);
         console.log(`Parsed orders count: ${parsed.length}`);
         console.log(`Unmatched (missing) items:`, missingList);

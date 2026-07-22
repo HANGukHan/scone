@@ -13,8 +13,6 @@ export default function Home() {
   const {
     theme,
     setTheme,
-    rawText,
-    setRawText,
     products,
     carryOverTri,
     manualAdjustTri,
@@ -90,7 +88,11 @@ export default function Home() {
   } = useSconeDashboard();
 
   useEffect(() => {
-    document.documentElement.className = theme === 'light' ? 'light' : '';
+    if (theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
   }, [theme]);
 
   // Page specific print controller
@@ -206,35 +208,19 @@ export default function Home() {
           accept=".xls,.xlsx" 
         />
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div className="textarea-card" style={{ flex: 1 }}>
-            <div className="card-title">로드된 엑셀 정산 결과 데이터 (JSON 원본)</div>
-            <textarea 
-              value={rawText} 
-              onChange={(e) => {
-                setRawText(e.target.value);
-                try {
-                  const arr = JSON.parse(e.target.value);
-                  if (Array.isArray(arr)) loadData(arr);
-                } catch(err) {}
-              }} 
-              placeholder="엑셀을 드롭하거나 유효한 JSON을 기입해 주세요..." 
-            />
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={addSpacer} className="btn btn-secondary font-bold" style={{ flex: 1 }}>
-              ➕ 구분선/공백 추가
-            </button>
-            <button onClick={() => printPage('page1')} className="btn btn-primary font-bold">
-              🖨️ 1페이지 인쇄
-            </button>
-            <button onClick={() => printPage('page2')} className="btn btn-primary font-bold">
-              🖨️ 2페이지 인쇄
-            </button>
-            <button onClick={() => printPage('all')} className="btn btn-primary font-bold">
-              🖨️ 전체 인쇄
-            </button>
-          </div>
+        <div style={{ display: 'flex', gap: '8px', width: '100%', marginTop: '12px' }}>
+          <button onClick={addSpacer} className="btn btn-secondary font-bold" style={{ flex: 1 }}>
+            ➕ 구분선/공백 추가
+          </button>
+          <button onClick={() => printPage('page1')} className="btn btn-primary font-bold">
+            🖨️ 1페이지 인쇄
+          </button>
+          <button onClick={() => printPage('page2')} className="btn btn-primary font-bold">
+            🖨️ 2페이지 인쇄
+          </button>
+          <button onClick={() => printPage('all')} className="btn btn-primary font-bold">
+            🖨️ 전체 인쇄
+          </button>
         </div>
       </div>
 

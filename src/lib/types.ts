@@ -7,6 +7,7 @@ export interface Product {
   pcs_per_pan: number;
   cream_per_pan: number;
   is_service: boolean;
+  aliases?: string | null;
 }
 
 export interface OrderWithProduct {

@@ -59,43 +59,43 @@ const DEFAULT_ORDERS = [
 
 // Fallback initial products
 const INITIAL_PRODUCTS = [
-  { id: "1", product_name: "말차초코칩스콘", option_name: null, shape_type: "삼각스콘", oven_number: 1, pcs_per_pan: 8, cream_per_pan: 170, is_service: false },
-  { id: "2", product_name: "츄러스콘", option_name: null, shape_type: "삼각스콘", oven_number: 2, pcs_per_pan: 8, cream_per_pan: 174, is_service: false },
-  { id: "3", product_name: "츄러스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
-  { id: "4", product_name: "츄러스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 4, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
-  { id: "5", product_name: "데이츠치아씨드스콘", option_name: null, shape_type: "삼각스콘", oven_number: 11, pcs_per_pan: 8, cream_per_pan: 160, is_service: false },
-  { id: "6", product_name: "데이츠치아씨드스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
-  { id: "7", product_name: "데이츠치아씨드스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 4, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
-  { id: "8", product_name: "바닐라피칸스콘", option_name: null, shape_type: "삼각스콘", oven_number: 4, pcs_per_pan: 8, cream_per_pan: 170, is_service: false },
-  { id: "9", product_name: "바닐라피칸스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
-  { id: "10", product_name: "바닐라피칸스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 4, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
-  { id: "11", product_name: "버터밀크비스킷스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 130, is_service: false },
-  { id: "12", product_name: "버터밀크비스킷스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
-  { id: "13", product_name: "버터밀크비스킷스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 8, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
-  { id: "14", product_name: "데솔오트밀바", option_name: null, shape_type: "삼각스콘", oven_number: 1, pcs_per_pan: 10, cream_per_pan: 160, is_service: false },
-  { id: "15", product_name: "데솔오트밀바", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
-  { id: "16", product_name: "카카오스콘", option_name: null, shape_type: "삼각스콘", oven_number: 1, pcs_per_pan: 8, cream_per_pan: 180, is_service: false },
-  { id: "17", product_name: "카카오스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 2, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
-  { id: "18", product_name: "카카오스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 2, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
-  { id: "19", product_name: "OXO스콘", option_name: null, shape_type: "삼각스콘", oven_number: 5, pcs_per_pan: 8, cream_per_pan: 150, is_service: false },
-  { id: "20", product_name: "OXO스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
-  { id: "21", product_name: "OXO스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 8, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
-  { id: "22", product_name: "순수오트스콘", option_name: null, shape_type: "삼각스콘", oven_number: 5, pcs_per_pan: 8, cream_per_pan: 140, is_service: false },
-  { id: "23", product_name: "순수오트스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
-  { id: "24", product_name: "귀리초코칩스콘", option_name: null, shape_type: "삼각스콘", oven_number: 1, pcs_per_pan: 8, cream_per_pan: 180, is_service: false },
-  { id: "25", product_name: "귀리초코칩스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
-  { id: "26", product_name: "딥카카오트스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 130, is_service: false },
-  { id: "27", product_name: "딥카카오트스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 7, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
-  { id: "28", product_name: "더티너티밤스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 110, is_service: false },
-  { id: "29", product_name: "더티너티밤스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
-  { id: "30", product_name: "더티너티밤스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 8, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
-  { id: "31", product_name: "말차오트초코칩스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 125, is_service: false },
-  { id: "32", product_name: "말차오트초코칩스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
-  { id: "33", product_name: "배리초코칩스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 140, is_service: false },
-  { id: "34", product_name: "배리초코칩스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
-  { id: "35", product_name: "[미니쉐이크]쑥인절미", option_name: null, shape_type: "미니큐브", oven_number: 2, pcs_per_pan: 4, cream_per_pan: 190, is_service: false },
-  { id: "36", product_name: "[미니쉐이크]카카오파베", option_name: null, shape_type: "미니큐브", oven_number: 2, pcs_per_pan: 4, cream_per_pan: 180, is_service: false },
-  { id: "37", product_name: "서비스스콘", option_name: null, shape_type: "기타", oven_number: null, pcs_per_pan: 1, cream_per_pan: 0, is_service: true }
+  { id: "1", product_name: "말차초코칩스콘", option_name: null, shape_type: "삼각스콘", oven_number: 1, pcs_per_pan: 8, cream_per_pan: 170, is_service: false, aliases: "말차초코칩스콘, -말차초코칩스콘, ---말차초코칩스콘" },
+  { id: "2", product_name: "츄러스콘", option_name: null, shape_type: "삼각스콘", oven_number: 2, pcs_per_pan: 8, cream_per_pan: 174, is_service: false, aliases: "츄러스콘, -츄러스콘, -통밀츄러스콘, ---츄러스콘, ---통밀츄러스콘" },
+  { id: "3", product_name: "츄러스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]통밀츄러미니큐브, 츄러스콘[미니큐브]" },
+  { id: "4", product_name: "츄러스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 4, pcs_per_pan: 9, cream_per_pan: 0, is_service: false, aliases: "----[세트]통밀츄러스틱 3팩, 츄러스콘[스틱스콘]" },
+  { id: "5", product_name: "데이츠치아씨드스콘", option_name: null, shape_type: "삼각스콘", oven_number: 11, pcs_per_pan: 8, cream_per_pan: 160, is_service: false, aliases: "데이츠치아씨드스콘, -데이츠치아씨드스콘, ---데이츠치아씨드스콘" },
+  { id: "6", product_name: "데이츠치아씨드스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]데치미니큐브, 데이츠치아씨드스콘[미니큐브]" },
+  { id: "7", product_name: "데이츠치아씨드스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 4, pcs_per_pan: 9, cream_per_pan: 0, is_service: false, aliases: "----[세트]데치스틱 3팩, 데이츠치아씨드스콘[스틱스콘]" },
+  { id: "8", product_name: "바닐라피칸스콘", option_name: null, shape_type: "삼각스콘", oven_number: 4, pcs_per_pan: 8, cream_per_pan: 170, is_service: false, aliases: "바닐라피칸스콘, -바닐라피칸스콘, ---바닐라피칸스콘" },
+  { id: "9", product_name: "바닐라피칸스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]바닐라피칸미니큐브, 바닐라피칸스콘[미니큐브]" },
+  { id: "10", product_name: "바닐라피칸스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 4, pcs_per_pan: 9, cream_per_pan: 0, is_service: false, aliases: "----[세트]바닐라피칸스틱 3팩, 바닐라피칸스콘[스틱스콘]" },
+  { id: "11", product_name: "버터밀크비스킷스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 130, is_service: false, aliases: "버터밀크비스킷스콘, -버터밀크비스킷스콘, ---버터밀크비스킷스콘" },
+  { id: "12", product_name: "버터밀크비스킷스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]버터밀크비스킷미니큐브, 버터밀크비스킷스콘[미니큐브]" },
+  { id: "13", product_name: "버터밀크비스킷스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 8, pcs_per_pan: 9, cream_per_pan: 0, is_service: false, aliases: "----[세트]버터밀크비스킷스틱 3팩, 버터밀크비스킷스콘[스틱스콘]" },
+  { id: "14", product_name: "데솔오트밀바", option_name: null, shape_type: "삼각스콘", oven_number: 1, pcs_per_pan: 10, cream_per_pan: 160, is_service: false, aliases: "데솔오트밀바, -데솔오트밀바, ---데솔오트밀바" },
+  { id: "15", product_name: "데솔오트밀바", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]데솔오바미니큐브, 데솔오트밀바[미니큐브]" },
+  { id: "16", product_name: "카카오스콘", option_name: null, shape_type: "삼각스콘", oven_number: 1, pcs_per_pan: 8, cream_per_pan: 180, is_service: false, aliases: "카카오스콘, -카카오스콘, ---카카오스콘" },
+  { id: "17", product_name: "카카오스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 2, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]카카오미니큐브, 카카오스콘[미니큐브]" },
+  { id: "18", product_name: "카카오스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 2, pcs_per_pan: 9, cream_per_pan: 0, is_service: false, aliases: "----[세트]카카오스틱 3팩, 카카오스콘[스틱스콘]" },
+  { id: "19", product_name: "OXO스콘", option_name: null, shape_type: "삼각스콘", oven_number: 5, pcs_per_pan: 8, cream_per_pan: 150, is_service: false, aliases: "OXO스콘, -OXO스콘, ---OXO스콘" },
+  { id: "20", product_name: "OXO스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]OXO미니큐브, OXO스콘[미니큐브]" },
+  { id: "21", product_name: "OXO스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 8, pcs_per_pan: 9, cream_per_pan: 0, is_service: false, aliases: "----[세트]OXO스틱 3팩, OXO스콘[스틱스콘]" },
+  { id: "22", product_name: "순수오트스콘", option_name: null, shape_type: "삼각스콘", oven_number: 5, pcs_per_pan: 8, cream_per_pan: 140, is_service: false, aliases: "순수오트스콘, -순수오트스콘, ---순수오트스콘" },
+  { id: "23", product_name: "순수오트스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]순수오트미니큐브, 순수오트스콘[미니큐브]" },
+  { id: "24", product_name: "귀리초코칩스콘", option_name: null, shape_type: "삼각스콘", oven_number: 1, pcs_per_pan: 8, cream_per_pan: 180, is_service: false, aliases: "귀리초코칩스콘, -귀리초코칩스콘, ---귀리초코칩스콘" },
+  { id: "25", product_name: "귀리초코칩스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]귀초칩미니큐브, 귀리초코칩스콘[미니큐브]" },
+  { id: "26", product_name: "딥카카오트스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 130, is_service: false, aliases: "딥카카오트스콘, -딥카카오트스콘, ---딥카카오트스콘" },
+  { id: "27", product_name: "딥카카오트스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 7, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]딥카카오트미니큐브, 딥카카오트스콘[미니큐브]" },
+  { id: "28", product_name: "더티너티밤스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 110, is_service: false, aliases: "더티너티밤스콘, -더티너티밤스콘, ---더티너티밤스콘" },
+  { id: "29", product_name: "더티너티밤스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]더티너티밤미니큐브, 더티너티밤스콘[미니큐브]" },
+  { id: "30", product_name: "더티너티밤스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 8, pcs_per_pan: 9, cream_per_pan: 0, is_service: false, aliases: "----[세트]더티너티밤스틱 3팩, 더티너티밤스콘[스틱스콘]" },
+  { id: "31", product_name: "말차오트초코칩스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 125, is_service: false, aliases: "말차오트초코칩스콘, -말차오트초코칩스콘, ---말차오트초코칩스콘" },
+  { id: "32", product_name: "말차오트초코칩스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]말차오트초코칩미니큐브, 말차오트초코칩스콘[미니큐브]" },
+  { id: "33", product_name: "배리초코칩스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 140, is_service: false, aliases: "배리초코칩스콘, -배리초코칩스콘, ---배리초코칩스콘" },
+  { id: "34", product_name: "배리초코칩스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]배리초코칩미니큐브, 배리초코칩스콘[미니큐브]" },
+  { id: "35", product_name: "[미니쉐이크]쑥인절미", option_name: null, shape_type: "미니큐브", oven_number: 2, pcs_per_pan: 4, cream_per_pan: 190, is_service: false, aliases: "-----[미니쉐이크]쑥인절미, [미니쉐이크]쑥인절미" },
+  { id: "36", product_name: "[미니쉐이크]카카오파베", option_name: null, shape_type: "미니큐브", oven_number: 2, pcs_per_pan: 4, cream_per_pan: 180, is_service: false, aliases: "-----[미니쉐이크]카카오파베, [미니쉐이크]카카오파베" },
+  { id: "37", product_name: "서비스스콘", option_name: null, shape_type: "기타", oven_number: null, pcs_per_pan: 1, cream_per_pan: 0, is_service: true, aliases: "서비스스콘" }
 ] as Product[];
 
 export default function Home() {
@@ -117,6 +117,7 @@ export default function Home() {
   const [newSconeOven, setNewSconeOven] = useState<string>('');
   const [newSconeYield, setNewSconeYield] = useState<number>(8);
   const [newSconeCream, setNewSconeCream] = useState<number>(170);
+  const [newSconeAliases, setNewSconeAliases] = useState<string>('');
 
   // Unregistered alert warnings state
   const [unregisteredScones, setUnregisteredScones] = useState<string[]>([]);
@@ -267,33 +268,50 @@ export default function Home() {
     return orders[key] || 0;
   }
 
-  // Lookup helper using master products database
+  // Lookup helper using master products database with alias mapping
   function getOrderQtyByMatch(product: Product) {
-    // Generate matches:
-    // Some excel rows have prefixes like "---단호박스콘" or "----[세트]OXO스틱 3팩"
-    // We match the keys mapped in our database matching patterns
-    let key = product.product_name + (product.option_name || "");
-    
-    // Build lookup keys
-    let lookupQty = 0;
+    let sumQty = 0;
+
+    // Convert aliases string to array of clean lowercase strings
+    const aliasList = product.aliases
+      ? product.aliases.split(',').map(a => a.trim().replace(/^[-]+/g, '').trim()).filter(Boolean)
+      : [];
+
+    // Fallback default alias list based on name and option
+    const baseName = product.product_name.trim();
+    const optName = product.option_name ? product.option_name.trim() : "";
+    const defaultKey = `${baseName}${optName}`;
+    const defaultAliases = [defaultKey, baseName];
     if (product.shape_type === '삼각스콘') {
-      // E.g. matches "-말차초코칩스콘" or "---단호박스콘"
-      const simpleName = `-${product.product_name}`;
-      const prefixName = `---${product.product_name}`;
-      lookupQty = getOrderQty(simpleName) || getOrderQty(prefixName) || getOrderQty(key);
+      defaultAliases.push(`-${baseName}`, `---${baseName}`);
     } else if (product.shape_type === '미니큐브') {
-      // E.g. matches "-----[하프팩]바닐라피칸미니큐브" or "-----[미니쉐이크]쑥인절미"
-      const prefixCube = `-----[하프팩]${product.product_name.replace("스콘","")}미니큐브`;
-      const shakeCube = `-----[미니쉐이크]${product.product_name.replace("[미니쉐이크]","")}`;
-      lookupQty = getOrderQty(prefixCube) || getOrderQty(shakeCube) || getOrderQty(key);
+      defaultAliases.push(`-----[하프팩]${baseName.replace("스콘","")}미니큐브`);
+      defaultAliases.push(`-----[미니쉐이크]${baseName.replace("[미니쉐이크]","")}`);
     } else if (product.shape_type === '스틱스콘') {
-      // E.g. matches "----[세트]바닐라피칸스틱 3팩"
-      const prefixStick = `----[세트]${product.product_name.replace("스콘","")}스틱 3팩`;
-      lookupQty = getOrderQty(prefixStick) || getOrderQty(key);
-    } else {
-      lookupQty = getOrderQty(product.product_name) || getOrderQty(key);
+      defaultAliases.push(`----[세트]${baseName.replace("스콘","")}스틱 3팩`);
     }
-    return lookupQty;
+
+    const allAliases = Array.from(new Set([
+      ...aliasList,
+      ...defaultAliases.map(a => a.replace(/^[-]+/g, '').trim())
+    ]));
+
+    // Check all orders in the orders map
+    Object.entries(orders).forEach(([orderKey, qty]) => {
+      // Clean order name by stripping prefixes like "---" or "-"
+      const cleanOrderKey = orderKey.trim().replace(/^[-]+/g, '').trim();
+
+      // Check if this clean order key matches any of our clean aliases
+      const isMatched = allAliases.some(alias => {
+        return cleanOrderKey.toLowerCase() === alias.toLowerCase();
+      });
+
+      if (isMatched) {
+        sumQty += qty;
+      }
+    });
+
+    return sumQty;
   }
 
   // Calculate live outputs reactively grouped by baseName
@@ -508,18 +526,29 @@ export default function Home() {
             
             // Check if this product is mapped in our master database
             const matched = products.find(p => {
-              // Exact name match or shape key check
-              const baseName = trimmedName.replace(/^[-]+/g, "");
-              const pNameClean = p.product_name;
-              
-              if (p.shape_type === '삼각스콘' && trimmedName.startsWith("-") && !trimmedName.includes("미니큐브") && !trimmedName.includes("스틱")) {
-                return baseName === pNameClean && !p.option_name;
-              } else if (p.shape_type === '미니큐브' && (trimmedName.includes("미니큐브") || trimmedName.includes("미니쉐이크"))) {
-                return pNameClean.includes(baseName) || baseName.includes(pNameClean.replace("-----[하프팩]","").replace("-----[미니쉐이크]",""));
-              } else if (p.shape_type === '스틱스콘' && trimmedName.includes("스틱")) {
-                return pNameClean.includes(baseName) || baseName.includes(pNameClean.replace("----[세트]","").replace("스틱 3팩",""));
+              const aliasList = p.aliases
+                ? p.aliases.split(',').map(a => a.trim().replace(/^[-]+/g, '').trim()).filter(Boolean)
+                : [];
+              const baseName = p.product_name.trim();
+              const optName = p.option_name ? p.option_name.trim() : "";
+              const defaultKey = `${baseName}${optName}`;
+              const defaultAliases = [defaultKey, baseName];
+              if (p.shape_type === '삼각스콘') {
+                defaultAliases.push(`-${baseName}`, `---${baseName}`);
+              } else if (p.shape_type === '미니큐브') {
+                defaultAliases.push(`-----[하프팩]${baseName.replace("스콘","")}미니큐브`);
+                defaultAliases.push(`-----[미니쉐이크]${baseName.replace("[미니쉐이크]","")}`);
+              } else if (p.shape_type === '스틱스콘') {
+                defaultAliases.push(`----[세트]${baseName.replace("스콘","")}스틱 3팩`);
               }
-              return (p.product_name === trimmedName && (p.option_name || "") === optionString);
+
+              const allAliases = Array.from(new Set([
+                ...aliasList,
+                ...defaultAliases.map(a => a.replace(/^[-]+/g, '').trim())
+              ]));
+
+              const cleanOrderKey = trimmedName.replace(/^[-]+/g, '').trim();
+              return allAliases.some(alias => cleanOrderKey.toLowerCase() === alias.toLowerCase());
             });
 
             // If not found in database and is not standard spacer or service item
@@ -586,7 +615,8 @@ export default function Home() {
       oven_number: parseInt(newSconeOven, 10) || null,
       pcs_per_pan: newSconeYield,
       cream_per_pan: newSconeCream,
-      is_service: false
+      is_service: false,
+      aliases: newSconeAliases.trim() || null
     };
 
     if (hasValidSupabaseConfig) {
@@ -596,7 +626,29 @@ export default function Home() {
           .insert([nextProduct])
           .select();
         
-        if (error) throw error;
+        if (error) {
+          // If RLS or missing column error, try fallback without aliases column
+          if (error.message.includes("column") || error.code === "42703") {
+            const fallbackProduct = { ...nextProduct };
+            delete fallbackProduct.aliases;
+            const { data: fbData, error: fbError } = await supabase
+              .from('products')
+              .insert([fallbackProduct])
+              .select();
+            if (fbError) throw fbError;
+            if (fbData) {
+              setProducts(prev => [...prev, fbData[0]]);
+              alert("스콘이 등록되었으나, Supabase DB에 'aliases' 열이 존재하지 않아 매칭 데이터는 누락되었습니다. schema.sql을 실행해 주세요!");
+              // Clear inputs
+              setNewSconeName('');
+              setNewSconeOption('');
+              setNewSconeOven('');
+              setNewSconeAliases('');
+              return;
+            }
+          }
+          throw error;
+        }
         if (data) {
           setProducts(prev => [...prev, data[0]]);
           alert("스콘이 Supabase DB에 성공적으로 등록되었습니다!");
@@ -618,9 +670,33 @@ export default function Home() {
     setNewSconeName('');
     setNewSconeOption('');
     setNewSconeOven('');
+    setNewSconeAliases('');
     
     // Remove from unregistered warning list if matched
     setUnregisteredScones(prev => prev.filter(s => !s.includes(newSconeName)));
+  }
+
+  // DB Table Truncate / Clear function
+  async function handleClearAllDBData() {
+    if (!confirm("🚨 경고! Supabase 데이터베이스의 모든 스콘 마스터 등록 데이터를 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
+    
+    if (hasValidSupabaseConfig) {
+      try {
+        const { error } = await supabase
+          .from('products')
+          .delete()
+          .neq('id', '00000000-0000-0000-0000-000000000000');
+        
+        if (error) throw error;
+        setProducts([]);
+        alert("데이터베이스 스콘 마스터 데이터가 성공적으로 전체 삭제 및 초기화되었습니다!");
+      } catch (err: any) {
+        alert("DB 데이터 삭제 실패: " + err.message);
+      }
+    } else {
+      setProducts([]);
+      alert("로컬 마스터 목록이 비워졌습니다. (Supabase 미연동)");
+    }
   }
 
   async function handleDeleteScone(id: string, name: string) {
@@ -650,6 +726,7 @@ export default function Home() {
     // Strip prefixes to guess clean base name
     const cleanedName = rawUnregisteredName.replace(/^[-]+/g, "").replace("[하프팩]","").replace("[세트]","").replace("스틱","").replace("미니큐브","").replace(" 3팩","").trim();
     setNewSconeName(cleanedName);
+    setNewSconeAliases(rawUnregisteredName);
     
     // Guess shape type
     if (rawUnregisteredName.includes("큐브")) {
@@ -1350,6 +1427,17 @@ export default function Home() {
                 />
               </div>
 
+              <div>
+                <label className="text-xs opacity-75 block mb-1">엑셀 매칭 상품명/키워드 (쉼표 구분)</label>
+                <input 
+                  type="text" 
+                  value={newSconeAliases}
+                  onChange={(e) => setNewSconeAliases(e.target.value)}
+                  placeholder="예: -----[하프팩]통밀츄러미니큐브, 츄러스콘[미니큐브]"
+                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
               <button type="submit" className="btn btn-primary w-full mt-2 font-bold py-2.5">
                 💾 저장 및 마스터 반영
               </button>
@@ -1358,9 +1446,17 @@ export default function Home() {
 
           {/* Scone Master List Table Card */}
           <div className="card col-span-2">
-            <div className="card-title">
-              <span>등록된 스콘 마스터 목록</span>
-              <span className="text-xs opacity-50 font-normal">총 {products.length}개 구성</span>
+            <div className="card-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <span>등록된 스콘 마스터 목록</span>
+                <span className="text-xs opacity-50 font-normal ml-2">총 {products.length}개 구성</span>
+              </div>
+              <button 
+                onClick={handleClearAllDBData}
+                className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition"
+              >
+                🗑️ DB 데이터 전체 초기화
+              </button>
             </div>
             
             <div className="table-container" style={{ maxHeight: '420px', overflowY: 'auto' }}>
@@ -1373,6 +1469,7 @@ export default function Home() {
                     <th>오븐</th>
                     <th>수율</th>
                     <th>생크림</th>
+                    <th>매칭 키워드</th>
                     <th>작업</th>
                   </tr>
                 </thead>
@@ -1389,6 +1486,9 @@ export default function Home() {
                       </td>
                       <td>{p.pcs_per_pan}개</td>
                       <td>{p.cream_per_pan}ml</td>
+                      <td style={{ fontSize: '11px', opacity: 0.8, maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.aliases || ''}>
+                        {p.aliases || '-'}
+                      </td>
                       <td>
                         {!p.is_service ? (
                           <button 

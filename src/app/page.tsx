@@ -119,8 +119,68 @@ export default function Home() {
   const [newSconeCream, setNewSconeCream] = useState<number>(170);
   const [newSconeAliases, setNewSconeAliases] = useState<string>('');
 
-  // Unregistered alert warnings state
-  const [unregisteredScones, setUnregisteredScones] = useState<string[]>([]);
+  // Unregistered alert warnings dynamically evaluated from orders and products
+  const unregisteredScones = useMemo(() => {
+    const missingList: string[] = [];
+    Object.keys(orders).forEach(orderKey => {
+      const trimmedName = cleanString(orderKey);
+      if (!trimmedName) return;
+
+      // Check if this product is mapped in our master database
+      const matched = products.find(p => {
+        const aliasList = p.aliases
+          ? p.aliases.split(',').map(a => normalize(a)).filter(Boolean)
+          : [];
+        const baseName = p.product_name;
+        const baseNameNorm = normalize(baseName);
+        const optNameNorm = p.option_name ? normalize(p.option_name) : "";
+        const defaultKeyNorm = baseNameNorm + optNameNorm;
+
+        const fallbackKeys: string[] = [defaultKeyNorm, baseNameNorm];
+        if (p.shape_type === '삼각스콘') {
+          fallbackKeys.push(normalize(`-${baseName}`), normalize(`---${baseName}`));
+        } else if (p.shape_type === '미니큐브') {
+          fallbackKeys.push(normalize(`-----[하프팩]${baseName.replace("스콘","")}미니큐브`));
+          fallbackKeys.push(normalize(`-----[미니쉐이크]${baseName.replace("[미니쉐이크]","")}`));
+        } else if (p.shape_type === '스틱스콘') {
+          fallbackKeys.push(normalize(`----[세트]${baseName.replace("스콘","")}스틱 3팩`));
+        }
+
+        const allNormalizedAliases = Array.from(new Set([
+          ...aliasList,
+          ...fallbackKeys.map(k => normalize(k))
+        ]));
+
+        const orderNorm = normalize(trimmedName);
+
+        // Shape category safety check
+        let shapeSafe = true;
+        if (p.shape_type === '미니큐브') {
+          shapeSafe = orderNorm.includes('큐브') || orderNorm.includes('쉐이크');
+        } else if (p.shape_type === '스틱스콘') {
+          shapeSafe = orderNorm.includes('스틱');
+        } else if (p.shape_type === '삼각스콘') {
+          shapeSafe = !orderNorm.includes('큐브') && !orderNorm.includes('쉐이크') && !orderNorm.includes('스틱');
+        }
+
+        if (!shapeSafe) return false;
+
+        return allNormalizedAliases.some(alias => {
+          if (!alias) return false;
+          return orderNorm === alias || orderNorm.includes(alias) || alias.includes(orderNorm);
+        });
+      });
+
+      // If not found in database and is not standard spacer or service item
+      const isStandardScone = trimmedName.startsWith("-") || trimmedName.includes("스콘") || trimmedName.includes("큐브") || trimmedName.includes("스틱") || trimmedName.includes("요프") || trimmedName.includes("머드") || trimmedName.includes("OPP");
+      if (!matched && isStandardScone && !trimmedName.includes("스타터팩") && !trimmedName.includes("서비스스콘")) {
+        if (!missingList.includes(trimmedName)) {
+          missingList.push(trimmedName);
+        }
+      }
+    });
+    return missingList;
+  }, [products, orders]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragIdxRef = useRef<number | null>(null);
@@ -250,10 +310,16 @@ export default function Home() {
     return orders[key] || 0;
   }
 
+  // Helper to remove any unicode hidden spaces and trim
+  function cleanString(str: string): string {
+    if (!str) return '';
+    return str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '').trim();
+  }
+
   // Helper to normalize hyphens and spaces
   function normalize(str: string): string {
     if (!str) return '';
-    return str.replace(/[-]/g, '').replace(/\s+/g, '').toLowerCase();
+    return str.replace(/[-]/g, '').replace(/[\s\uFEFF\xA0]+/g, '').toLowerCase().trim();
   }
 
   // Fuzzy normalize product names to reconcile phonetic and trailing word deviations (e.g. 배리 vs 베리, 스콘 suffix)
@@ -261,10 +327,11 @@ export default function Home() {
     if (!name) return '';
     return name
       .replace(/[-]/g, '')
-      .replace(/\s+/g, '')
+      .replace(/[\s\uFEFF\xA0]+/g, '')
       .replace(/스콘$/g, '')
       .replace(/배/g, '베')
-      .toLowerCase();
+      .toLowerCase()
+      .trim();
   }
 
   // Lookup helper using master products database with alias mapping
@@ -608,7 +675,6 @@ export default function Home() {
         console.log(`Unmatched (missing) items:`, missingList);
         console.log("====================================");
 
-        setUnregisteredScones(missingList);
         loadData(parsed);
       } catch (err: any) {
         alert("엑셀 파일 해석 오류: " + err.message);
@@ -746,8 +812,6 @@ export default function Home() {
     setNewSconeOven('');
     setNewSconeAliases('');
     
-    // Remove from unregistered warning list if matched
-    setUnregisteredScones(prev => prev.filter(s => !s.includes(prodNameClean)));
   }
 
   // DB Table Truncate / Clear function

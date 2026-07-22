@@ -41,6 +41,7 @@ interface SconeMasterModalProps {
   editingOvenVal: string;
   setEditingOvenVal: (val: string) => void;
   setShowPasswordChangeModal: (val: boolean) => void;
+  handleLoadProductToForm: (p: Product) => void;
 }
 
 export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
@@ -81,7 +82,8 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
   setEditingOvenProdId,
   editingOvenVal,
   setEditingOvenVal,
-  setShowPasswordChangeModal
+  setShowPasswordChangeModal,
+  handleLoadProductToForm
 }) => {
   if (!show) return null;
 
@@ -338,147 +340,162 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p) => (
-                    <tr key={p.id}>
-                      <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: '500' }}>{p.product_name}</td>
-                      <td>{p.option_name || '-'}</td>
-                      <td>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
-                          <span className="text-xs opacity-75">{p.shape_type}</span>
-                          {(() => {
-                            const parsed = parseExtendedAliases(p.aliases);
-                            if (parsed.productType === 'material') {
-                              return <span className="text-[9px] px-1 py-0.5 bg-amber-500/10 text-amber-500 rounded border border-amber-500/20" style={{ display: 'inline-block', marginTop: '2px' }}>부자재/포장재</span>;
-                            }
-                            if (parsed.sconeType === 'package') {
-                              return (
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', marginTop: '2px' }}>
-                                  <span className="text-[9px] px-1 py-0.5 bg-indigo-500/10 text-indigo-400 rounded border border-indigo-500/20" style={{ display: 'inline-block' }}>세트/패키지</span>
-                                  {parsed.components.length > 0 && (
-                                    <span className="text-[9px] opacity-60 text-center" style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={parsed.components.map(c => `${c.name} x${c.qty}`).join(', ')}>
-                                      {parsed.components.map(c => `${c.name}x${c.qty}`).join(', ')}
-                                    </span>
-                                  )}
-                                </div>
-                              );
-                            }
-                            return null;
-                          })()}
-                        </div>
-                      </td>
-                      <td>
-                        {editingOvenProdId === p.id ? (
-                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center' }}>
-                            <input 
-                              type="number" 
-                              value={editingOvenVal}
-                              onChange={(e) => setEditingOvenVal(e.target.value)}
-                              className="bg-[#1e2942] border border-indigo-500 rounded px-1.5 py-0.5 text-xs text-[#f8fafc]"
-                              style={{ width: '50px' }}
-                              autoFocus
-                            />
-                            <button 
-                              onClick={() => handleSaveInlineOven(p.id)}
-                              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
-                            >
-                              저장
-                            </button>
-                            <button 
-                              onClick={() => setEditingOvenProdId(null)}
-                              className="bg-gray-600 hover:bg-gray-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
-                            >
-                              취소
-                            </button>
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }}>
-                            {p.oven_number ? (
-                              <span className="badge-oven badge-tri">오븐 {p.oven_number}</span>
-                            ) : '-'}
-                            <button 
-                              onClick={() => {
-                                setEditingOvenProdId(p.id);
-                                setEditingOvenVal(p.oven_number ? String(p.oven_number) : '');
-                              }}
-                              className="text-indigo-400 hover:text-indigo-300 text-[10px] underline cursor-pointer"
-                            >
-                              수정
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                      <td>{p.pcs_per_pan}개</td>
-                      <td>{p.cream_per_pan}ml</td>
-                      <td style={{ fontSize: '11px', opacity: 0.8, maxWidth: '280px' }}>
-                        {editingProdId === p.id ? (
-                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                            <input 
-                              type="text" 
-                              value={editingAliasesVal}
-                              onChange={(e) => setEditingAliasesVal(e.target.value)}
-                              className="bg-[#1e2942] border border-indigo-500 rounded px-1.5 py-0.5 text-xs text-[#f8fafc]"
-                              placeholder="쉼표로 구분"
-                              style={{ width: '160px' }}
-                              autoFocus
-                            />
-                            <button 
-                              onClick={() => handleSaveInlineAliases(p.id)}
-                              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
-                            >
-                              저장
-                            </button>
-                            <button 
-                              onClick={() => setEditingProdId(null)}
-                              className="bg-gray-600 hover:bg-gray-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
-                            >
-                              취소
-                            </button>
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', width: '100%' }}>
+                  {(() => {
+                    const sortedProducts = [...products].sort((a, b) => {
+                      const nameA = a.product_name.localeCompare(b.product_name, 'ko');
+                      if (nameA !== 0) return nameA;
+                      return (a.option_name || '').localeCompare(b.option_name || '', 'ko');
+                    });
+                    return sortedProducts.map((p) => (
+                      <tr key={p.id}>
+                        <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: '500' }}>{p.product_name}</td>
+                        <td>{p.option_name || '-'}</td>
+                        <td>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
+                            <span className="text-xs opacity-75">{p.shape_type}</span>
                             {(() => {
                               const parsed = parseExtendedAliases(p.aliases);
-                              if (!parsed.cleanAliases) return <span className="text-xs opacity-50">-</span>;
-                              return parsed.cleanAliases.split(',').map((alias, idx) => {
-                                const cleanAlias = cleanString(alias);
-                                if (!cleanAlias) return null;
+                              if (parsed.productType === 'material') {
+                                return <span className="text-[9px] px-1 py-0.5 bg-amber-500/10 text-amber-500 rounded border border-amber-500/20" style={{ display: 'inline-block', marginTop: '2px' }}>부자재/포장재</span>;
+                              }
+                              if (parsed.sconeType === 'package') {
                                 return (
-                                  <span 
-                                    key={idx} 
-                                    className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] px-1.5 py-0.5 rounded-full"
-                                    style={{ display: 'inline-block', whiteSpace: 'nowrap' }}
-                                  >
-                                    {cleanAlias}
-                                  </span>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', marginTop: '2px' }}>
+                                    <span className="text-[9px] px-1 py-0.5 bg-indigo-500/10 text-indigo-400 rounded border border-indigo-500/20" style={{ display: 'inline-block' }}>세트/패키지</span>
+                                    {parsed.components.length > 0 && (
+                                      <span className="text-[9px] opacity-60 text-center" style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={parsed.components.map(c => `${c.name} x${c.qty}`).join(', ')}>
+                                        {parsed.components.map(c => `${c.name}x${c.qty}`).join(', ')}
+                                      </span>
+                                    )}
+                                  </div>
                                 );
-                              });
+                              }
+                              return null;
                             })()}
-                            <button 
-                              onClick={() => {
-                                setEditingProdId(p.id);
-                                setEditingAliasesVal(parseExtendedAliases(p.aliases).cleanAliases);
-                              }}
-                              className="text-indigo-400 hover:text-indigo-300 text-[10px] underline ml-auto cursor-pointer"
-                            >
-                              수정
-                            </button>
                           </div>
-                        )}
-                      </td>
-                      <td>
-                        {!p.is_service ? (
-                          <button 
-                            onClick={() => handleDeleteScone(p.id, p.product_name + (p.option_name || ""))}
-                            className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-xs px-2 py-1 rounded transition cursor-pointer"
-                          >
-                            삭제
-                          </button>
-                        ) : (
-                          <span className="text-xs opacity-50">고정</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td>
+                          {editingOvenProdId === p.id ? (
+                            <div style={{ display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center' }}>
+                              <input 
+                                type="number" 
+                                value={editingOvenVal}
+                                onChange={(e) => setEditingOvenVal(e.target.value)}
+                                className="bg-[#1e2942] border border-indigo-500 rounded px-1.5 py-0.5 text-xs text-[#f8fafc]"
+                                style={{ width: '50px' }}
+                                autoFocus
+                              />
+                              <button 
+                                onClick={() => handleSaveInlineOven(p.id)}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
+                              >
+                                저장
+                              </button>
+                              <button 
+                                onClick={() => setEditingOvenProdId(null)}
+                                className="bg-gray-600 hover:bg-gray-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
+                              >
+                                취소
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }}>
+                              {p.oven_number ? (
+                                <span className="badge-oven badge-tri">오븐 {p.oven_number}</span>
+                              ) : '-'}
+                              <button 
+                                onClick={() => {
+                                  setEditingOvenProdId(p.id);
+                                  setEditingOvenVal(p.oven_number ? String(p.oven_number) : '');
+                                }}
+                                className="text-indigo-400 hover:text-indigo-300 text-[10px] underline cursor-pointer"
+                              >
+                                수정
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                        <td>{p.pcs_per_pan}개</td>
+                        <td>{p.cream_per_pan}ml</td>
+                        <td style={{ fontSize: '11px', opacity: 0.8, maxWidth: '280px' }}>
+                          {editingProdId === p.id ? (
+                            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                              <input 
+                                type="text" 
+                                value={editingAliasesVal}
+                                onChange={(e) => setEditingAliasesVal(e.target.value)}
+                                className="bg-[#1e2942] border border-indigo-500 rounded px-1.5 py-0.5 text-xs text-[#f8fafc]"
+                                placeholder="쉼표로 구분"
+                                style={{ width: '160px' }}
+                                autoFocus
+                              />
+                              <button 
+                                onClick={() => handleSaveInlineAliases(p.id)}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
+                              >
+                                저장
+                              </button>
+                              <button 
+                                onClick={() => setEditingProdId(null)}
+                                className="bg-gray-600 hover:bg-gray-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
+                              >
+                                취소
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', width: '100%' }}>
+                              {(() => {
+                                const parsed = parseExtendedAliases(p.aliases);
+                                if (!parsed.cleanAliases) return <span className="text-xs opacity-50">-</span>;
+                                return parsed.cleanAliases.split(',').map((alias, idx) => {
+                                  const cleanAlias = cleanString(alias);
+                                  if (!cleanAlias) return null;
+                                  return (
+                                    <span 
+                                      key={idx} 
+                                      className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] px-1.5 py-0.5 rounded-full"
+                                      style={{ display: 'inline-block', whiteSpace: 'nowrap' }}
+                                    >
+                                      {cleanAlias}
+                                    </span>
+                                  );
+                                });
+                              })()}
+                              <button 
+                                onClick={() => {
+                                  setEditingProdId(p.id);
+                                  setEditingAliasesVal(parseExtendedAliases(p.aliases).cleanAliases);
+                                }}
+                                className="text-indigo-400 hover:text-indigo-300 text-[10px] underline ml-auto cursor-pointer"
+                              >
+                                수정
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          {!p.is_service ? (
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                              <button 
+                                onClick={() => handleLoadProductToForm(p)}
+                                className="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-xs px-2 py-1 rounded transition cursor-pointer"
+                              >
+                                편집
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteScone(p.id, p.product_name + (p.option_name || ""))}
+                                className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-xs px-2 py-1 rounded transition cursor-pointer"
+                              >
+                                삭제
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs opacity-50">고정</span>
+                          )}
+                        </td>
+                      </tr>
+                    ));
+                  })()}
                 </tbody>
               </table>
             </div>

@@ -965,14 +965,13 @@ export function useSconeDashboard() {
       );
     }
 
-    const targetShape = existing ? existing.shape_type : newSconeShape;
     const nextProduct: Omit<Product, 'id'> & { id?: string } = {
-      product_name: existing ? existing.product_name : prodNameClean,
-      option_name: existing ? existing.option_name : optNameClean,
-      shape_type: targetShape,
-      oven_number: parseInt(newSconeOven, 10) || (existing ? existing.oven_number : null),
-      pcs_per_pan: existing && existing.shape_type !== newSconeShape ? existing.pcs_per_pan : newSconeYield,
-      cream_per_pan: existing && existing.shape_type !== newSconeShape ? existing.cream_per_pan : newSconeCream,
+      product_name: prodNameClean,
+      option_name: optNameClean,
+      shape_type: newSconeShape,
+      oven_number: newSconeOven.trim() ? parseInt(newSconeOven, 10) : null,
+      pcs_per_pan: newSconeYield,
+      cream_per_pan: newSconeCream,
       is_service: existing ? existing.is_service : false,
       aliases: mergedAliases
     };
@@ -1271,6 +1270,24 @@ export function useSconeDashboard() {
     setShowPasswordChangeModal(false);
   }
 
+  function handleLoadProductToForm(p: Product) {
+    const parsed = parseExtendedAliases(p.aliases);
+    setNewSconeName(p.product_name);
+    setNewSconeOption(p.option_name || '');
+    setNewSconeShape(p.shape_type);
+    setNewSconeOven(p.oven_number ? String(p.oven_number) : '');
+    setNewSconeYield(p.pcs_per_pan);
+    setNewSconeCream(p.cream_per_pan);
+    setNewSconeAliases(parsed.cleanAliases);
+    setNewSconeProductType(parsed.productType);
+    setNewSconeCompositionType(parsed.sconeType);
+    if (parsed.components.length > 0) {
+      setNewSconePackageComponents(parsed.components.map(c => `${c.name}:${c.qty}`).join(', '));
+    } else {
+      setNewSconePackageComponents('');
+    }
+  }
+
   async function handleDeleteScone(id: string, name: string) {
     if (!confirm(`[${name}] 스콘 구성을 마스터 리스트에서 삭제하시겠습니까?`)) return;
     
@@ -1391,6 +1408,7 @@ export function useSconeDashboard() {
     handleRegisterInstantly,
     handlePasswordVerify,
     handleChangePassword,
-    getOrderQtyByMatch
+    getOrderQtyByMatch,
+    handleLoadProductToForm
   };
 }

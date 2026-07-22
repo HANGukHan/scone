@@ -85,7 +85,8 @@ export default function Home() {
     handleRegisterInstantly,
     handlePasswordVerify,
     handleChangePassword,
-    getOrderQtyByMatch
+    getOrderQtyByMatch,
+    handleLoadProductToForm
   } = useSconeDashboard();
 
   useEffect(() => {
@@ -343,6 +344,7 @@ export default function Home() {
         editingOvenVal={editingOvenVal}
         setEditingOvenVal={setEditingOvenVal}
         setShowPasswordChangeModal={setShowPasswordChangeModal}
+        handleLoadProductToForm={handleLoadProductToForm}
       />
 
     </div>

@@ -546,10 +546,6 @@ body {
       gap: 8px;
     }
 
-    /* Hidden elements in print but visible in web */
-    .no-print {
-      display: block;
-    }
     .print-only {
       display: none;
     }

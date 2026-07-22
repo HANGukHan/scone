@@ -1,17 +1,18 @@
-# Node dependencies
+# Next.js build outputs
+.next/
+out/
+build/
+
+# Dependency directories
 node_modules/
 
 # Environment configurations
-.env
 .env*.local
-
-# Next.js build output
-.next/
-out/
-
-# Isolated full-stack subproject
-scone-production-web/
+.env
 
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# Exclude isolated subdirectory leftover files
+scone-production-web/

@@ -119,6 +119,10 @@ export default function Home() {
   const [newSconeCream, setNewSconeCream] = useState<number>(170);
   const [newSconeAliases, setNewSconeAliases] = useState<string>('');
 
+  // Scone Master CRUD Inline Editing States
+  const [editingProdId, setEditingProdId] = useState<string | null>(null);
+  const [editingAliasesVal, setEditingAliasesVal] = useState<string>('');
+
   // Unregistered alert warnings dynamically evaluated from orders and products
   const unregisteredScones = useMemo(() => {
     const missingList: string[] = [];
@@ -893,6 +897,36 @@ export default function Home() {
       setProducts(INITIAL_PRODUCTS);
       alert("로컬 마스터에 백업 데이터 37개 구성이 복원되었습니다. (Supabase 미연동)");
     }
+  }
+
+  // Save inline edited aliases for a product
+  async function handleSaveInlineAliases(id: string) {
+    const prod = products.find(p => p.id === id);
+    if (!prod) return;
+
+    const updatedAliases = cleanString(editingAliasesVal) || null;
+
+    if (hasValidSupabaseConfig) {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .update({ aliases: updatedAliases })
+          .eq('id', id)
+          .select();
+        
+        if (error) throw error;
+        if (data) {
+          setProducts(prev => prev.map(p => p.id === id ? data[0] : p));
+          alert("매칭 키워드가 성공적으로 수정되었습니다!");
+        }
+      } catch (err: any) {
+        alert("수정 실패: " + err.message);
+      }
+    } else {
+      setProducts(prev => prev.map(p => p.id === id ? { ...p, aliases: updatedAliases } : p));
+      alert("로컬 마스터에 매칭 키워드가 수정되었습니다. (Supabase 미연동)");
+    }
+    setEditingProdId(null);
   }
 
   async function handleDeleteScone(id: string, name: string) {
@@ -1691,8 +1725,50 @@ export default function Home() {
                       </td>
                       <td>{p.pcs_per_pan}개</td>
                       <td>{p.cream_per_pan}ml</td>
-                      <td style={{ fontSize: '11px', opacity: 0.8, maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.aliases || ''}>
-                        {p.aliases || '-'}
+                      <td style={{ fontSize: '11px', opacity: 0.8, maxWidth: '240px' }}>
+                        {editingProdId === p.id ? (
+                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                            <input 
+                              type="text" 
+                              value={editingAliasesVal}
+                              onChange={(e) => setEditingAliasesVal(e.target.value)}
+                              className="bg-[#1e2942] border border-indigo-500 rounded px-1.5 py-0.5 text-xs text-[#f8fafc]"
+                              placeholder="쉼표로 구분"
+                              style={{ width: '120px' }}
+                              autoFocus
+                            />
+                            <button 
+                              onClick={() => handleSaveInlineAliases(p.id)}
+                              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
+                            >
+                              저장
+                            </button>
+                            <button 
+                              onClick={() => setEditingProdId(null)}
+                              className="bg-gray-600 hover:bg-gray-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
+                            >
+                              취소
+                            </button>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                            <span 
+                              style={{ display: 'inline-block', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} 
+                              title={p.aliases || ''}
+                            >
+                              {p.aliases || '-'}
+                            </span>
+                            <button 
+                              onClick={() => {
+                                setEditingProdId(p.id);
+                                setEditingAliasesVal(p.aliases || '');
+                              }}
+                              className="text-indigo-400 hover:text-indigo-300 text-[10px] ml-1.5 underline"
+                            >
+                              수정
+                            </button>
+                          </div>
+                        )}
                       </td>
                       <td>
                         {!p.is_service ? (

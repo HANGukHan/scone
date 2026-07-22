@@ -14,6 +14,7 @@ interface SconeMasterModalProps {
   handleSaveInlineAliases: (id: string) => void;
   handleSaveInlineOven: (id: string) => void;
   handleSaveInlineSortOrder: (id: string) => void;
+  backupTime: string | null;
   newSconeName: string;
   setNewSconeName: (val: string) => void;
   newSconeOption: string;
@@ -64,6 +65,7 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
   handleSaveInlineAliases,
   handleSaveInlineOven,
   handleSaveInlineSortOrder,
+  backupTime,
   newSconeName,
   setNewSconeName,
   newSconeOption,
@@ -175,8 +177,9 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
                 <button 
                   onClick={handleRestoreFromBackup}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"
+                  title={backupTime ? `최신 백업: ${backupTime}` : undefined}
                 >
-                  🔄 백업 데이터 복원
+                  🔄 백업 데이터 복원 {backupTime ? `(최신 백업: ${backupTime})` : ''}
                 </button>
                 <button 
                   onClick={handleClearAllDBData}
@@ -205,8 +208,13 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
                 <tbody>
                   {(() => {
                     const sortedProducts = [...products].sort((a, b) => {
-                      const nameA = a.product_name.localeCompare(b.product_name, 'ko');
-                      if (nameA !== 0) return nameA;
+                      const hasOptA = a.option_name && a.option_name.trim() !== '';
+                      const hasOptB = b.option_name && b.option_name.trim() !== '';
+                      if (hasOptA !== hasOptB) {
+                        return (hasOptA ? 1 : 0) - (hasOptB ? 1 : 0);
+                      }
+                      const nameCompare = a.product_name.localeCompare(b.product_name, 'ko');
+                      if (nameCompare !== 0) return nameCompare;
                       return (a.option_name || '').localeCompare(b.option_name || '', 'ko');
                     });
                     return sortedProducts.map((p) => (

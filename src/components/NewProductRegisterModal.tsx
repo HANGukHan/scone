@@ -277,9 +277,13 @@ export const NewProductRegisterModal: React.FC<NewProductRegisterModalProps> = (
               <label className="text-xs opacity-75 block mb-1">오븐 생산 단위 (기본값: 3)</label>
               <input 
                 type="number" 
-                step="0.1"
+                step="0.5"
                 value={newSconeOvenBatchSize}
-                onChange={(e) => setNewSconeOvenBatchSize(parseFloat(e.target.value) || 3.0)}
+                onChange={(e) => {
+                  const rawVal = parseFloat(e.target.value) || 3.0;
+                  const rounded = Math.round(rawVal * 2) / 2;
+                  setNewSconeOvenBatchSize(rounded);
+                }}
                 placeholder="예: 3 또는 2.5"
                 className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
               />

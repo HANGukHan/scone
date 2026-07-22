@@ -14,6 +14,7 @@ interface ProductionTableProps {
   handleDragStart: (idx: number) => void;
   handleDragOver: (e: React.DragEvent) => void;
   handleDrop: (idx: number) => void;
+  handleHideProductName: (name: string) => void;
   totals: {
     totalPans: number;
     creamLitres: number;
@@ -36,6 +37,7 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
   handleDragStart,
   handleDragOver,
   handleDrop,
+  handleHideProductName,
   totals
 }) => {
   return (
@@ -122,7 +124,19 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
                 onDrop={() => handleDrop(index)}
               >
                 <td className="no-print col-drag-handle" style={{ cursor: 'grab', textAlign: 'center' }}>☰</td>
-                <td className="hl-name">{r.name}</td>
+                <td className="hl-name">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    <span>{r.name}</span>
+                    <button 
+                      onClick={() => handleHideProductName(r.name)}
+                      className="no-print text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold transition ml-2 border border-rose-500/20"
+                      title="당일 생산량 집계에서 임시 숨김"
+                      style={{ cursor: 'pointer', flexShrink: 0 }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </td>
                 <td>{r.ovenTri ? <span className="badge-oven badge-tri">오븐 {r.ovenTri}</span> : ''}</td>
                 <td>{r.ovenStickCube ? <span className="badge-oven badge-sc">오븐 {r.ovenStickCube}</span> : ''}</td>
                 <td className="hl-pans">{r.totalQ}</td>

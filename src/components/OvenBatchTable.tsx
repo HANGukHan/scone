@@ -28,7 +28,7 @@ export const OvenBatchTable: React.FC<OvenBatchTableProps> = ({
               <th>오븐 번호</th>
               <th className="hl-pans">삼각/바 판수</th>
               <th style={{ display: 'none' }}>풀팬 (AK = A ÷ 단위)</th>
-              <th className="hl-adjusted-pans">풀팬 (단위묶음)</th>
+              <th className="hl-adjusted-pans">풀팬 (기본단위 3판)</th>
               <th className="hl-rem">남는 반죽 판수</th>
             </tr>
           </thead>
@@ -77,7 +77,7 @@ export const OvenBatchTable: React.FC<OvenBatchTableProps> = ({
                   <tr key={"oven-" + item.id} className="hover:bg-white/[0.01]">
                     <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: '500' }}>
                       {r.name}
-                      {batchSize !== 3.0 && <span className="opacity-50 text-[10px] ml-1">({batchSize}판 단위)</span>}
+                      {batchSize !== 3.0 && <strong className="ml-1 text-[10px]" style={{ color: 'var(--accent-color)' }}>({batchSize}판)</strong>}
                     </td>
                     <td><span className="badge-oven badge-tri">오븐 {r.ovenTri}</span></td>
                     <td className="hl-pans">{valAJ}</td>

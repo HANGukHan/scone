@@ -45,23 +45,19 @@ export const FooterMetrics: React.FC<FooterMetricsProps> = ({
               <tr style={{ background: 'var(--bg-surface-elevated)', borderBottom: '1px solid var(--border-color)' }}>
                 <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 'bold' }}>품목명</th>
                 <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 'bold' }}>옵션/구분</th>
-                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 'bold' }} className="no-print">연결 키워드(Aliases)</th>
                 <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', width: '100px' }}>주문량</th>
               </tr>
             </thead>
             <tbody>
               {subMaterials.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center opacity-50 py-12">등록된 부자재/포장재 마스터 상품이 없습니다.</td>
+                  <td colSpan={3} className="text-center opacity-50 py-12">등록된 부자재/포장재 마스터 상품이 없습니다.</td>
                 </tr>
               ) : (
                 subMaterials.map((m) => (
                   <tr key={m.id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }} className="hover:bg-white/5">
                     <td style={{ padding: '10px 12px', fontWeight: 'bold', color: 'var(--text-primary)' }}>{m.name}</td>
                     <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>{m.option || '-'}</td>
-                    <td style={{ padding: '10px 12px', color: 'var(--text-muted)', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="no-print">
-                      {m.aliases ? m.aliases.split('::')[0].trim() : '-'}
-                    </td>
                     <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', color: m.qty > 0 ? 'var(--accent-color)' : 'var(--text-muted)' }}>
                       {m.qty} 개
                     </td>
@@ -73,7 +69,6 @@ export const FooterMetrics: React.FC<FooterMetricsProps> = ({
               <tr style={{ background: 'rgba(99, 102, 241, 0.05)', borderTop: '2px solid var(--border-color)' }}>
                 <td style={{ padding: '12px', fontWeight: 'bold', color: 'var(--accent-color)' }}>🍶 생크림 소요 총량</td>
                 <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>-</td>
-                <td style={{ padding: '12px', color: 'var(--text-muted)' }} className="no-print">오븐 배정 자동 계산</td>
                 <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', color: 'var(--accent-color)' }}>
                   {totals.creamLitres} L
                 </td>

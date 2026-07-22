@@ -109,7 +109,10 @@ export default function Home() {
     editingSortVal,
     setEditingSortVal,
     handleSaveInlineSortOrder,
-    handleSaveCurrentBackup
+    handleSaveCurrentBackup,
+    backupTime,
+    handleHideProductName,
+    handleSaveCurrentOrder
   } = useSconeDashboard();
 
   useEffect(() => {
@@ -154,7 +157,13 @@ export default function Home() {
               }
             }}
             className="theme-toggle-btn"
-            style={{ background: 'var(--accent-color)', color: '#fff', fontWeight: 'bold' }}
+            style={{ 
+              background: '#4f46e5', 
+              color: '#ffffff', 
+              fontWeight: 'bold', 
+              border: '2px solid #818cf8',
+              boxShadow: '0 0 12px rgba(99, 102, 241, 0.4)'
+            }}
           >
             🛠️ 스콘 마스터 관리
           </button>
@@ -214,7 +223,7 @@ export default function Home() {
 
                       <button 
                         onClick={() => handleOpenRegisterNewModal(s)}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"
+                        className="bg-[#1e1b4b] hover:bg-[#312e81] text-[#ffffff] font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer border border-[#4338ca]"
                       >
                         ➕ 신규 상품으로 등록
                       </button>
@@ -283,9 +292,12 @@ export default function Home() {
           accept=".xls,.xlsx" 
         />
         
-        <div style={{ display: 'flex', gap: '8px', width: '100%', marginTop: '12px' }}>
-          <button onClick={addSpacer} className="btn btn-secondary font-bold" style={{ flex: 1 }}>
+        <div style={{ display: 'flex', gap: '8px', width: '100%', marginTop: '12px', flexWrap: 'wrap' }}>
+          <button onClick={addSpacer} className="btn btn-secondary font-bold" style={{ flex: '1 1 auto' }}>
             ➕ 구분선/공백 추가
+          </button>
+          <button onClick={handleSaveCurrentOrder} className="btn btn-secondary font-bold" style={{ flex: '1 1 auto', background: 'rgba(99, 102, 241, 0.2)', border: '1px solid var(--accent-color)', color: 'var(--text-primary)' }}>
+            💾 현재 순서/위치 저장
           </button>
           <button onClick={() => printPage('page1')} className="btn btn-primary font-bold">
             🖨️ 1페이지 인쇄
@@ -336,6 +348,7 @@ export default function Home() {
           handleDragStart={handleDragStart}
           handleDragOver={handleDragOver}
           handleDrop={handleDrop}
+          handleHideProductName={handleHideProductName}
           totals={totals}
         />
 
@@ -395,6 +408,7 @@ export default function Home() {
         handleSaveInlineAliases={handleSaveInlineAliases}
         handleSaveInlineOven={handleSaveInlineOven}
         handleSaveInlineSortOrder={handleSaveInlineSortOrder}
+        backupTime={backupTime}
         newSconeName={newSconeName}
         setNewSconeName={setNewSconeName}
         newSconeOption={newSconeOption}

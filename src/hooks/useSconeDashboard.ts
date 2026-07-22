@@ -243,6 +243,8 @@ export function useSconeDashboard() {
   const [manualAdjustTri, setManualAdjustTri] = useState<Record<string, number>>({});
   const [carryOverCube, setCarryOverCube] = useState<Record<string, number>>({});
   const [productSequence, setProductSequence] = useState<any[]>([]);
+  const [hiddenProductNames, setHiddenProductNames] = useState<string[]>([]);
+  const [backupTime, setBackupTime] = useState<string | null>(null);
 
   // Scone Master CRUD Form States
   const [newSconeName, setNewSconeName] = useState<string>('');
@@ -414,13 +416,22 @@ export function useSconeDashboard() {
 
   // Fetch initial master products
   useEffect(() => {
-    // Clear all localStorage and sessionStorage caches except credentials
+    // Clear all localStorage and sessionStorage caches except credentials and backups
     const pw = localStorage.getItem('masterPassword');
     const expiry = localStorage.getItem('masterAuthExpiry');
+    const backup = localStorage.getItem('masterProductsBackup');
+    const backupTimeVal = localStorage.getItem('masterProductsBackupTime');
+
     localStorage.clear();
     sessionStorage.clear();
+
     if (pw) localStorage.setItem('masterPassword', pw);
     if (expiry) localStorage.setItem('masterAuthExpiry', expiry);
+    if (backup) localStorage.setItem('masterProductsBackup', backup);
+    if (backupTimeVal) {
+      localStorage.setItem('masterProductsBackupTime', backupTimeVal);
+      setBackupTime(backupTimeVal);
+    }
 
     async function loadMasterProducts() {
       if (hasValidSupabaseConfig) {
@@ -461,6 +472,8 @@ export function useSconeDashboard() {
         })
         .filter(p => {
           const parsed = parseExtendedAliases(p.aliases);
+          if (parsed.sortOrder === 0) return false;
+          if (hiddenProductNames.includes(p.product_name)) return false;
           return parsed.sortOrder < 9999 || getOrderQtyByMatch(p) > 0;
         })
         .sort((a, b) => {
@@ -532,7 +545,7 @@ export function useSconeDashboard() {
       });
       return next;
     });
-  }, [products, orders]);
+  }, [products, orders, hiddenProductNames]);
 
   function loadData(records: any[]) {
     const nextOrders: Record<string, number> = {};
@@ -542,6 +555,7 @@ export function useSconeDashboard() {
     });
     setOrders(nextOrders);
     setRawText(JSON.stringify(records, null, 2));
+    setHiddenProductNames([]);
   }
 
   function getOrderQty(name: string, opt: string | null = null) {
@@ -1128,7 +1142,67 @@ export function useSconeDashboard() {
 
   function handleSaveCurrentBackup() {
     localStorage.setItem('masterProductsBackup', JSON.stringify(products));
-    alert("현재 등록된 스콘 마스터 전체 목록이 브라우저 백업으로 저장되었습니다!");
+    const now = new Date();
+    const yy = String(now.getFullYear()).substring(2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const formattedTime = `${yy}.${mm}.${dd} ${hh}:${min}`;
+    
+    localStorage.setItem('masterProductsBackupTime', formattedTime);
+    setBackupTime(formattedTime);
+    alert(`현재 등록된 스콘 마스터 전체 목록이 브라우저 백업으로 저장되었습니다!\n(저장 시간: ${formattedTime})`);
+  }
+
+  function handleHideProductName(name: string) {
+    setHiddenProductNames(prev => [...prev, name]);
+  }
+
+  async function handleSaveCurrentOrder() {
+    const orderedNames = productSequence
+      .filter(item => item.type === 'product')
+      .map(item => item.name);
+
+    const updatedProducts = products.map(p => {
+      const parsed = parseExtendedAliases(p.aliases);
+      if (parsed.productType === 'material' || parsed.sconeType === 'package' || p.is_service) {
+        return p;
+      }
+      
+      const idx = orderedNames.indexOf(p.product_name);
+      const newSortOrder = idx !== -1 ? idx + 1 : 9999;
+      
+      const serialized = serializeExtendedAliases(
+        parsed.cleanAliases,
+        parsed.productType,
+        parsed.sconeType,
+        parsed.components,
+        parsed.ovenBatchSize,
+        newSortOrder
+      );
+      
+      return {
+        ...p,
+        aliases: serialized
+      };
+    });
+
+    if (hasValidSupabaseConfig) {
+      try {
+        const { error } = await supabase
+          .from('products')
+          .upsert(updatedProducts);
+        if (error) throw error;
+        setProducts(updatedProducts);
+        alert("현재 배치 순서가 데이터베이스에 저장되었습니다!");
+      } catch (err: any) {
+        alert("순서 저장 실패: " + err.message);
+      }
+    } else {
+      setProducts(updatedProducts);
+      alert("현재 배치 순서가 로컬에 저장되었습니다! (Supabase 미연동)");
+    }
   }
 
   async function handleRestoreFromBackup() {
@@ -1527,6 +1601,7 @@ export function useSconeDashboard() {
     carryOverCube,
     productSequence,
     setProductSequence,
+    backupTime,
 
     // CRUD States
     newSconeName,
@@ -1624,6 +1699,8 @@ export function useSconeDashboard() {
     handleClearAllDBData,
     handleRestoreFromBackup,
     handleSaveCurrentBackup,
+    handleHideProductName,
+    handleSaveCurrentOrder,
     handleSaveInlineAliases,
     handleSaveInlineOven,
     handleSaveInlineSortOrder,

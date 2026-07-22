@@ -70,7 +70,14 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
           {productSequence.map((item, index) => {
             if (item.type === 'spacer') {
               return (
-                <tr key={item.id} className="spacer-row">
+                <tr 
+                  key={item.id} 
+                  className="spacer-row"
+                  draggable 
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={handleDragOver}
+                  onDrop={() => handleDrop(index)}
+                >
                   <td className="no-print col-drag-handle" style={{ cursor: 'grab', textAlign: 'center' }}>☰</td>
                   <td colSpan={3} style={{ textAlign: 'left', paddingLeft: '16px' }}>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '100%' }}>

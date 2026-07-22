@@ -129,13 +129,71 @@ export function fuzzyNormalizeProductName(name: string): string {
     .trim();
 }
 
+export const DEFAULT_ORDERS = [
+  { "name": "-------[Gourmet M]피넛머드", "option": "[스무스]", "qty": 7 },
+  { "name": "-------소분용 OPP 봉투 20매", "option": "[간식용]", "qty": 1 },
+  { "name": "-------소분용 OPP 봉투 20매", "option": "[식사용]", "qty": 6 },
+  { "name": "------YOF6팩", "option": null, "qty": 2 },
+  { "name": "------요프 한 가지 맛", "option": "[ 말차]", "qty": 2 },
+  { "name": "------요프 한 가지 맛", "option": "[ 쑥]", "qty": 1 },
+  { "name": "------요프 한 가지 맛", "option": "[ 콩가루]", "qty": 1 },
+  { "name": "-----[미니쉐이크]쑥인절미", "option": null, "qty": 5 },
+  { "name": "-----[미니쉐이크]카카오파베", "option": null, "qty": 15 },
+  { "name": "-----[하프팩]OXO미니큐브", "option": null, "qty": 9 },
+  { "name": "-----[하프팩]귀초칩미니큐브", "option": null, "qty": 4 },
+  { "name": "-----[하프팩]더티너티밤미니큐브", "option": null, "qty": 11 },
+  { "name": "-----[하프팩]데솔오바미니큐브", "option": null, "qty": 7 },
+  { "name": "-----[하프팩]데치미니큐브", "option": null, "qty": 1 },
+  { "name": "-----[하프팩]말차오트초코칩미니큐브", "option": null, "qty": 5 },
+  { "name": "-----[하프팩]바닐라피칸미니큐브", "option": null, "qty": 8 },
+  { "name": "-----[하프팩]버터밀크비스킷미니큐브", "option": null, "qty": 5 },
+  { "name": "-----[하프팩]배리초코칩미니큐브", "option": null, "qty": 6 },
+  { "name": "-----[하프팩]순수오트미니큐브", "option": null, "qty": 1 },
+  { "name": "-----[하프팩]카카오미니큐브", "option": null, "qty": 5 },
+  { "name": "-----[하프팩]통밀츄러미니큐브", "option": null, "qty": 4 },
+  { "name": "----[세트]OXO스틱 3팩", "option": null, "qty": 17 },
+  { "name": "----[세트]더티너티밤스틱 3팩", "option": null, "qty": 34 },
+  { "name": "----[세트]데치스틱 3팩", "option": null, "qty": 18 },
+  { "name": "----[세트]바닐라피칸스틱 3팩", "option": null, "qty": 28 },
+  { "name": "----[세트]버터밀크비스킷스틱 3팩", "option": null, "qty": 16 },
+  { "name": "----[세트]카카오스틱 3팩", "option": null, "qty": 19 },
+  { "name": "----[세트]통밀츄러스틱 3팩", "option": null, "qty": 8 },
+  { "name": "---단호박스콘", "option": null, "qty": 238 },
+  { "name": "---쑥스콘", "option": null, "qty": 140 },
+  { "name": "---쑥인절미꿀호떡스콘", "option": null, "qty": 129 },
+  { "name": "---흑미밤설기바스콘", "option": null, "qty": 103 },
+  { "name": "---흑임자라떼스콘", "option": null, "qty": 100 },
+  { "name": "-OXO스콘", "option": null, "qty": 393 },
+  { "name": "-귀리초코칩스콘", "option": null, "qty": 219 },
+  { "name": "-더티너티밤스콘", "option": null, "qty": 429 },
+  { "name": "-데솔오트밀바", "option": null, "qty": 293 },
+  { "name": "-데이츠치아씨드스콘", "option": null, "qty": 106 },
+  { "name": "-말차오트초코칩스콘", "option": null, "qty": 109 },
+  { "name": "-말차초코칩스콘", "option": null, "qty": 252 },
+  { "name": "-바닐라피칸스콘", "option": null, "qty": 358 },
+  { "name": "-버터밀크비스킷스콘", "option": null, "qty": 155 },
+  { "name": "-배리초코칩스콘", "option": null, "qty": 137 },
+  { "name": "-순수오트스콘", "option": null, "qty": 87 },
+  { "name": "-카카오스콘", "option": null, "qty": 193 },
+  { "name": "-통밀츄러스콘", "option": null, "qty": 250 },
+  { "name": "서비스스콘", "option": null, "qty": 110 },
+  { "name": "스타터팩", "option": null, "qty": 3 }
+];
+
 export function useSconeDashboard() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [rawText, setRawText] = useState<string>('');
+  const [orders, setOrders] = useState<Record<string, number>>(() => {
+    const nextOrders: Record<string, number> = {};
+    DEFAULT_ORDERS.forEach(r => {
+      const key = `${r.name}${r.option || ""}`;
+      nextOrders[key] = (nextOrders[key] || 0) + (r.qty || 0);
+    });
+    return nextOrders;
+  });
+  const [rawText, setRawText] = useState<string>(() => JSON.stringify(DEFAULT_ORDERS, null, 2));
   
   // App States
   const [products, setProducts] = useState<Product[]>([]);
-  const [orders, setOrders] = useState<Record<string, number>>({});
   const [carryOverTri, setCarryOverTri] = useState<Record<string, number>>({});
   const [manualAdjustTri, setManualAdjustTri] = useState<Record<string, number>>({});
   const [carryOverCube, setCarryOverCube] = useState<Record<string, number>>({});
@@ -642,78 +700,149 @@ export function useSconeDashboard() {
           throw new Error("엑셀 시트 내 데이터가 존재하지 않습니다.");
         }
 
+        let formatType: 'easyadmin' | 'raw_list' | 'summary' | null = null;
+        let startRow = 0;
+        let nameIdx = -1;
+        let optIdx = -1;
+        let qtyIdx = -1;
+
+        // Loop through the first few rows to auto-detect the headers and column indices
+        for (let i = 0; i < Math.min(10, rows.length); i++) {
+          const row = rows[i];
+          if (!row || row.length === 0) continue;
+
+          // Detect Test1.xlsx format by headers
+          if (row.includes('상품명') && row.includes('옵션') && row.includes('수량')) {
+            const nIdx = row.indexOf('상품명');
+            const oIdx = row.indexOf('옵션');
+            const qIdx = row.indexOf('수량');
+            if (nIdx !== -1 && oIdx !== -1 && qIdx !== -1) {
+              nameIdx = nIdx;
+              optIdx = oIdx;
+              qtyIdx = qIdx;
+              formatType = 'raw_list';
+              startRow = i + 1;
+              break;
+            }
+          }
+
+          // Detect menu1.xlsx format by headers
+          if (row.includes('상품명') && row.includes('옵션') && row.includes('수량') && row.includes('관리명+옵션명')) {
+            nameIdx = 1;
+            optIdx = 2;
+            qtyIdx = 3;
+            formatType = 'summary';
+            startRow = i + 1;
+            break;
+          }
+        }
+
+        // Fallback or EasyAdmin format check if formatType is still null
+        if (!formatType) {
+          const hasEasyAdminStatus = rows.some(r => r && r[0] && (
+            String(r[0]).includes("매칭 완료") || 
+            String(r[0]).includes("매칭대기") || 
+            String(r[0]).includes("매칭오류") || 
+            String(r[0]).includes("취소")
+          ));
+          if (hasEasyAdminStatus) {
+            formatType = 'easyadmin';
+            nameIdx = 2;
+            optIdx = 3;
+            qtyIdx = 4;
+            startRow = 0; // Scan from beginning
+          }
+        }
+
+        // Final default fallback
+        if (!formatType) {
+          formatType = 'easyadmin';
+          nameIdx = 2;
+          optIdx = 3;
+          qtyIdx = 4;
+          startRow = 0;
+        }
+
+        console.log(`Detected Excel Format: ${formatType}, startRow: ${startRow}, nameIdx: ${nameIdx}, optIdx: ${optIdx}, qtyIdx: ${qtyIdx}`);
+
         const parsed: any[] = [];
         const missingList: string[] = [];
 
-        for (let i = 0; i < rows.length; i++) {
+        for (let i = startRow; i < rows.length; i++) {
           const row = rows[i];
-          if (!row || row.length < 5) continue;
-          const status = String(row[0] || '').trim();
-          if (status.includes("매칭 완료") || status.includes("매칭대기") || status.includes("매칭오류") || status.includes("취소")) {
-            const rawName = String(row[2] || '').trim();
-            const option = String(row[3] || '').trim();
-            const qty = parseInt(row[4], 10) || 0;
+          if (!row) continue;
 
-            const trimmedName = cleanString(rawName);
-            if (!trimmedName || qty <= 0) continue;
+          // If EasyAdmin format, filter by status
+          if (formatType === 'easyadmin') {
+            const status = String(row[0] || '').trim();
+            const isValidStatus = status.includes("매칭 완료") || status.includes("매칭대기") || status.includes("매칭오류") || status.includes("취소");
+            if (!isValidStatus) continue;
+          }
 
-            const matched = products.find(p => {
-              const aliasList = p.aliases ? p.aliases.split(',').map(a => normalize(a)).filter(Boolean) : [];
-              const baseName = p.product_name;
-              const baseNameNorm = normalize(baseName);
-              const optNameNorm = p.option_name ? normalize(p.option_name) : "";
-              const defaultKeyNorm = baseNameNorm + optNameNorm;
+          const rawName = String(row[nameIdx] || '').trim();
+          const option = String(row[optIdx] || '').trim();
+          const qty = parseInt(row[qtyIdx], 10) || 0;
 
-              const fallbackKeys = [defaultKeyNorm, baseNameNorm];
-              if (p.shape_type === '삼각스콘') {
-                fallbackKeys.push(normalize(`-${baseName}`), normalize(`---${baseName}`));
-              } else if (p.shape_type === '미니큐브') {
-                fallbackKeys.push(normalize(`-----[하프팩]${baseName.replace("스콘","")}미니큐브`));
-                fallbackKeys.push(normalize(`-----[미니쉐이크]${baseName.replace("[미니쉐이크]","")}`));
-              } else if (p.shape_type === '스틱스콘') {
-                fallbackKeys.push(normalize(`----[세트]${baseName.replace("스콘","")}스틱 3팩`));
-              }
+          const trimmedName = cleanString(rawName);
+          if (!trimmedName || qty <= 0) continue;
 
-              const allNormalizedAliases = Array.from(new Set([
-                ...aliasList,
-                ...fallbackKeys.map(k => normalize(k))
-              ]));
+          const matched = products.find(p => {
+            const aliasList = p.aliases ? p.aliases.split(',').map(a => normalize(a)).filter(Boolean) : [];
+            const baseName = p.product_name;
+            const baseNameNorm = normalize(baseName);
+            const optNameNorm = p.option_name ? normalize(p.option_name) : "";
+            const defaultKeyNorm = baseNameNorm + optNameNorm;
 
-              const orderNorm = normalize(trimmedName);
-              let shapeSafe = true;
-              if (p.shape_type === '미니큐브') {
-                shapeSafe = orderNorm.includes('큐브') || orderNorm.includes('쉐이크');
-              } else if (p.shape_type === '스틱스콘') {
-                shapeSafe = orderNorm.includes('스틱');
-              } else if (p.shape_type === '삼각스콘') {
-                shapeSafe = !orderNorm.includes('큐브') && !orderNorm.includes('쉐이크') && !orderNorm.includes('스틱');
-              }
-
-              if (!shapeSafe) return false;
-
-              return allNormalizedAliases.some(alias => {
-                if (!alias) return false;
-                return orderNorm === alias || orderNorm.includes(alias) || alias.includes(orderNorm);
-              });
-            });
-
-            const isStandardScone = trimmedName.startsWith("-") || trimmedName.includes("스콘") || trimmedName.includes("큐브") || trimmedName.includes("스틱") || trimmedName.includes("요프") || trimmedName.includes("머드") || trimmedName.includes("OPP");
-            if (!matched && isStandardScone && !trimmedName.includes("스타터팩") && !trimmedName.includes("서비스스콘")) {
-              if (!missingList.includes(trimmedName)) {
-                missingList.push(trimmedName);
-              }
+            const fallbackKeys = [defaultKeyNorm, baseNameNorm];
+            if (p.shape_type === '삼각스콘') {
+              fallbackKeys.push(normalize(`-${baseName}`), normalize(`---${baseName}`));
+            } else if (p.shape_type === '미니큐브') {
+              fallbackKeys.push(normalize(`-----[하프팩]${baseName.replace("스콘","")}미니큐브`));
+              fallbackKeys.push(normalize(`-----[미니쉐이크]${baseName.replace("[미니쉐이크]","")}`));
+            } else if (p.shape_type === '스틱스콘') {
+              fallbackKeys.push(normalize(`----[세트]${baseName.replace("스콘","")}스틱 3팩`));
             }
 
-            parsed.push({
-              name: trimmedName,
-              option: option ? String(option).trim() : null,
-              qty: qty
+            const allNormalizedAliases = Array.from(new Set([
+              ...aliasList,
+              ...fallbackKeys.map(k => normalize(k))
+            ]));
+
+            const orderNorm = normalize(trimmedName);
+            let shapeSafe = true;
+            if (p.shape_type === '미니큐브') {
+              shapeSafe = orderNorm.includes('큐브') || orderNorm.includes('쉐이크');
+            } else if (p.shape_type === '스틱스콘') {
+              shapeSafe = orderNorm.includes('스틱');
+            } else if (p.shape_type === '삼각스콘') {
+              shapeSafe = !orderNorm.includes('큐브') && !orderNorm.includes('쉐이크') && !orderNorm.includes('스틱');
+            }
+
+            if (!shapeSafe) return false;
+
+            return allNormalizedAliases.some(alias => {
+              if (!alias) return false;
+              return orderNorm === alias || orderNorm.includes(alias) || alias.includes(orderNorm);
             });
+          });
+
+          const isStandardScone = trimmedName.startsWith("-") || trimmedName.includes("스콘") || trimmedName.includes("큐브") || trimmedName.includes("스틱") || trimmedName.includes("요프") || trimmedName.includes("머드") || trimmedName.includes("OPP");
+          if (!matched && isStandardScone && !trimmedName.includes("스타터팩") && !trimmedName.includes("서비스스콘")) {
+            if (!missingList.includes(trimmedName)) {
+              missingList.push(trimmedName);
+            }
           }
+
+          parsed.push({
+            name: trimmedName,
+            option: option && option !== 'undefined' ? String(option).trim() : null,
+            qty: qty
+          });
         }
         
         console.log("=== EXCEL UPLOAD MATCHING REPORT ===");
-        console.log(`Total rows processed: ${rows.length - 1}`);
+        console.log(`Detected Format: ${formatType}`);
+        console.log(`Total rows processed: ${rows.length - startRow}`);
         console.log(`Parsed orders count: ${parsed.length}`);
         console.log(`Unmatched (missing) items:`, missingList);
         console.log("====================================");

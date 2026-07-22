@@ -159,29 +159,11 @@ export default function Home() {
   useEffect(() => {
     if (products.length === 0) return;
 
-    // Find all unique base product names present in the active orders
+    // Find all unique base product names present in the active orders using the alias matching engine
     const activeBaseNames = Array.from(new Set(
       products
         .filter(p => !p.is_service)
-        .filter(p => {
-          let key = p.product_name + (p.option_name || "");
-          let orderQty = 0;
-          if (p.shape_type === '삼각스콘') {
-            const simpleName = `-${p.product_name}`;
-            const prefixName = `---${p.product_name}`;
-            orderQty = orders[simpleName] || orders[prefixName] || orders[key] || 0;
-          } else if (p.shape_type === '미니큐브') {
-            const prefixCube = `-----[하프팩]${p.product_name.replace("스콘","")}미니큐브`;
-            const shakeCube = `-----[미니쉐이크]${p.product_name.replace("[미니쉐이크]","")}`;
-            orderQty = orders[prefixCube] || orders[shakeCube] || orders[key] || 0;
-          } else if (p.shape_type === '스틱스콘') {
-            const prefixStick = `----[세트]${p.product_name.replace("스콘","")}스틱 3팩`;
-            orderQty = orders[prefixStick] || orders[key] || 0;
-          } else {
-            orderQty = orders[p.product_name] || orders[key] || 0;
-          }
-          return orderQty > 0;
-        })
+        .filter(p => getOrderQtyByMatch(p) > 0)
         .map(p => p.product_name)
     ));
 
@@ -1164,12 +1146,12 @@ export default function Home() {
                 <th className="sub-th no-print">전날남음 (S)</th>
                 <th className="sub-th no-print">수동조정 (X_adj)</th>
                 <th className="sub-th hl-adjusted-pans">조정판수 (U)</th>
-                <th className="sub-th" style={{ borderRight: '2px solid var(--border-color)' }}>최종남음 (W)</th>
+                <th className="sub-th" style={{ borderRight: '2px solid var(--border-color)' }}>남은량 (개)</th>
                 <th className="sub-th no-print">전날남음 (Z)</th>
                 <th className="sub-th hl-adjusted-pans">생산판수 (Y)</th>
-                <th className="sub-th hl-rem" style={{ borderRight: '2px solid var(--border-color)' }}>최종남음 (봉투)</th>
+                <th className="sub-th hl-rem" style={{ borderRight: '2px solid var(--border-color)' }}>남은량 (봉)</th>
                 <th className="sub-th hl-adjusted-pans">생산판수 (AC)</th>
-                <th className="sub-th hl-rem">최종남음 (개)</th>
+                <th className="sub-th hl-rem">남은량 (팩)</th>
               </tr>
             </thead>
             <tbody id="productionTableBody">
@@ -1276,7 +1258,7 @@ export default function Home() {
                     </td>
                     <td className="hl-adjusted-pans">{r.hasCube ? r.cubeY : ''}</td>
                     <td className="hl-rem" style={{ borderRight: '2px solid var(--border-color)' }}>
-                      {r.hasCube ? (pCube && pCube.pcs_per_pan === 4 ? r.cubeAB : r.cubeAA) : ''}
+                      {r.hasCube && r.name.includes('[미니쉐이크]') ? (pCube && pCube.pcs_per_pan === 4 ? r.cubeAB : r.cubeAA) : ''}
                     </td>
                     
                     {/* Stick */}
@@ -1306,6 +1288,7 @@ export default function Home() {
                 <td id="sumCubeY">{Object.values(computedData).reduce((sum, r) => sum + r.cubeY, 0)}</td>
                 <td id="sumCubeAB" style={{ borderRight: '2px solid var(--border-color)' }}>
                   {Object.values(computedData).reduce((sum, r) => {
+                    if (!r.name.includes('[미니쉐이크]')) return sum;
                     const pCube = products.find(p => p.product_name === r.name && p.shape_type === '미니큐브');
                     const pcs = pCube ? pCube.pcs_per_pan : 2;
                     return sum + (pcs === 4 ? r.cubeAB : r.cubeAA);

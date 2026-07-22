@@ -1725,7 +1725,7 @@ export default function Home() {
                       </td>
                       <td>{p.pcs_per_pan}개</td>
                       <td>{p.cream_per_pan}ml</td>
-                      <td style={{ fontSize: '11px', opacity: 0.8, maxWidth: '240px' }}>
+                      <td style={{ fontSize: '11px', opacity: 0.8, maxWidth: '280px' }}>
                         {editingProdId === p.id ? (
                           <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                             <input 
@@ -1734,7 +1734,7 @@ export default function Home() {
                               onChange={(e) => setEditingAliasesVal(e.target.value)}
                               className="bg-[#1e2942] border border-indigo-500 rounded px-1.5 py-0.5 text-xs text-[#f8fafc]"
                               placeholder="쉼표로 구분"
-                              style={{ width: '120px' }}
+                              style={{ width: '160px' }}
                               autoFocus
                             />
                             <button 
@@ -1751,19 +1751,30 @@ export default function Home() {
                             </button>
                           </div>
                         ) : (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                            <span 
-                              style={{ display: 'inline-block', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} 
-                              title={p.aliases || ''}
-                            >
-                              {p.aliases || '-'}
-                            </span>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', width: '100%' }}>
+                            {p.aliases ? (
+                              p.aliases.split(',').map((alias, idx) => {
+                                const cleanAlias = cleanString(alias);
+                                if (!cleanAlias) return null;
+                                return (
+                                  <span 
+                                    key={idx} 
+                                    className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] px-1.5 py-0.5 rounded-full"
+                                    style={{ display: 'inline-block', whiteSpace: 'nowrap' }}
+                                  >
+                                    {cleanAlias}
+                                  </span>
+                                );
+                              })
+                            ) : (
+                              <span className="text-xs opacity-50">-</span>
+                            )}
                             <button 
                               onClick={() => {
                                 setEditingProdId(p.id);
                                 setEditingAliasesVal(p.aliases || '');
                               }}
-                              className="text-indigo-400 hover:text-indigo-300 text-[10px] ml-1.5 underline"
+                              className="text-indigo-400 hover:text-indigo-300 text-[10px] underline ml-auto cursor-pointer"
                             >
                               수정
                             </button>

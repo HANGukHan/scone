@@ -24,6 +24,11 @@ interface NewProductRegisterModalProps {
   setNewSconeCompositionType: (val: 'general' | 'package') => void;
   newSconePackageComponents: string;
   setNewSconePackageComponents: (val: string) => void;
+  newSconeSortOrder: number;
+  setNewSconeSortOrder: (val: number) => void;
+  newSconeOvenBatchSize: number;
+  setNewSconeOvenBatchSize: (val: number) => void;
+  isEditing: boolean;
 }
 
 export const NewProductRegisterModal: React.FC<NewProductRegisterModalProps> = ({
@@ -49,7 +54,12 @@ export const NewProductRegisterModal: React.FC<NewProductRegisterModalProps> = (
   newSconeCompositionType,
   setNewSconeCompositionType,
   newSconePackageComponents,
-  setNewSconePackageComponents
+  setNewSconePackageComponents,
+  newSconeSortOrder,
+  setNewSconeSortOrder,
+  newSconeOvenBatchSize,
+  setNewSconeOvenBatchSize,
+  isEditing
 }) => {
   if (!show) return null;
 
@@ -92,7 +102,7 @@ export const NewProductRegisterModal: React.FC<NewProductRegisterModalProps> = (
           ✕
         </button>
         <div className="section-title mb-6">
-          <span>➕ 신규 상품 등록 (Supabase DB)</span>
+          <span>{isEditing ? '🛠️ 마스터 상품 수정' : '➕ 신규 상품 등록 (Supabase DB)'}</span>
         </div>
         
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -251,8 +261,33 @@ export const NewProductRegisterModal: React.FC<NewProductRegisterModalProps> = (
               className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
             />
           </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs opacity-75 block mb-1">표시 순서 (낮을수록 먼저)</label>
+              <input 
+                type="number" 
+                value={newSconeSortOrder}
+                onChange={(e) => setNewSconeSortOrder(parseInt(e.target.value, 10) || 0)}
+                placeholder="예: 10"
+                className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs opacity-75 block mb-1">오븐 생산 단위 (기본값: 3)</label>
+              <input 
+                type="number" 
+                step="0.1"
+                value={newSconeOvenBatchSize}
+                onChange={(e) => setNewSconeOvenBatchSize(parseFloat(e.target.value) || 3.0)}
+                placeholder="예: 3 또는 2.5"
+                className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
           <button type="submit" className="btn btn-primary w-full mt-2 font-bold py-2.5">
-            💾 신규 상품으로 등록 및 저장
+            {isEditing ? '💾 수정 내용 저장 및 반영' : '💾 신규 상품으로 등록 및 저장'}
           </button>
         </form>
       </div>

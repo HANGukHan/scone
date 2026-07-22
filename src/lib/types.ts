@@ -8,6 +8,8 @@ export interface Product {
   cream_per_pan: number;
   is_service: boolean;
   aliases?: string | null;
+  oven_batch_size?: number;
+  sort_order?: number;
 }
 
 export interface OrderWithProduct {

@@ -157,7 +157,14 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
                   ) : ''}
                 </td>
                 <td className="hl-adjusted-pans">{r.hasTri ? r.triU : ''}</td>
-                <td style={{ borderRight: '2px solid var(--border-color)' }}>{r.hasTri ? r.triW : ''}</td>
+                <td style={{ 
+                  borderRight: '2px solid var(--border-color)',
+                  background: (r.hasTri && r.triW === 0) ? 'rgba(245, 158, 11, 0.15)' : 'transparent',
+                  color: (r.hasTri && r.triW === 0) ? '#fb923c' : 'inherit',
+                  fontWeight: (r.hasTri && r.triW === 0) ? 'bold' : 'normal'
+                }}>
+                  {r.hasTri ? r.triW : ''}
+                </td>
                 
                 {/* Cube */}
                 <td className="no-print">

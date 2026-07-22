@@ -586,30 +586,30 @@ body {
       table, #ovenTable {
         table-layout: auto !important;
         width: 100% !important;
-        font-size: 8pt !important;
+        font-size: 8.5pt !important;
+        border-collapse: collapse !important;
       }
 
       th {
-        background-color: #e2e8f0 !important;
+        background-color: #f1f5f9 !important;
         color: #000000 !important;
-        border-bottom: 2px solid #94a3b8 !important;
-        border-right: 1px solid #94a3b8 !important;
-        padding: 3px 1px !important;
+        border: 1.5px solid #000000 !important;
+        padding: 6px 4px !important;
+        font-weight: bold !important;
       }
 
       td {
-        border-bottom: 1px solid #94a3b8 !important;
-        border-right: 1px solid #94a3b8 !important;
+        border: 1px solid #333333 !important;
         color: #000000 !important;
         background-color: #ffffff !important;
-        padding: 3px 1px !important;
+        padding: 6px 4px !important;
       }
 
       .hl-name {
         background-color: #ffffff !important;
         color: #000000 !important;
         font-weight: bold !important;
-        border-right: 1px solid #94a3b8 !important;
+        border: 1px solid #333333 !important;
         width: auto !important;
         min-width: 0 !important;
       }

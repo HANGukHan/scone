@@ -1,4 +1,5 @@
 import React from 'react';
+import { parseExtendedAliases } from '../hooks/useSconeDashboard';
 import { Product } from '../lib/types';
 
 interface OvenBatchTableProps {
@@ -9,7 +10,8 @@ interface OvenBatchTableProps {
 
 export const OvenBatchTable: React.FC<OvenBatchTableProps> = ({
   productSequence,
-  computedData
+  computedData,
+  products
 }) => {
   return (
     <div className="page-2" style={{ marginTop: '24px' }}>
@@ -25,8 +27,8 @@ export const OvenBatchTable: React.FC<OvenBatchTableProps> = ({
               <th style={{ textAlign: 'left', paddingLeft: '16px' }}>상품명</th>
               <th>오븐 번호</th>
               <th className="hl-pans">삼각/바 판수</th>
-              <th style={{ display: 'none' }}>풀팬 (AK = A ÷ 3)</th>
-              <th className="hl-adjusted-pans">풀팬 (3판 단위)</th>
+              <th style={{ display: 'none' }}>풀팬 (AK = A ÷ 단위)</th>
+              <th className="hl-adjusted-pans">풀팬 (단위묶음)</th>
               <th className="hl-rem">남는 반죽 판수</th>
             </tr>
           </thead>
@@ -51,16 +53,20 @@ export const OvenBatchTable: React.FC<OvenBatchTableProps> = ({
                 const r = computedData[item.name];
                 if (!r || !r.hasTri) return null;
 
+                const pTri = products.find(p => p.product_name === item.name && p.shape_type === '삼각스콘');
+                const parsed = parseExtendedAliases(pTri?.aliases);
+                const batchSize = parsed.ovenBatchSize; // defaults to 3.0
+
                 const valAJ = r.triU; 
-                const valAK = Math.floor(valAJ / 3); 
-                const valAM = valAJ - (3 * valAK); 
+                const valAK = Math.floor(valAJ / batchSize); 
+                const valAM = valAJ - (batchSize * valAK); 
                 
                 let valAL = valAK; 
                 if (valAK > 0 && valAM > 0 && valAK > 1) {
                   valAL = valAK - 1;
                 }
                 
-                const valAN = 3 * (valAK - valAL) + valAM;
+                const valAN = batchSize * (valAK - valAL) + valAM;
 
                 sumAJ += valAJ;
                 sumAK += valAK;
@@ -69,7 +75,10 @@ export const OvenBatchTable: React.FC<OvenBatchTableProps> = ({
 
                 return (
                   <tr key={"oven-" + item.id} className="hover:bg-white/[0.01]">
-                    <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: '500' }}>{r.name}</td>
+                    <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: '500' }}>
+                      {r.name}
+                      {batchSize !== 3.0 && <span className="opacity-50 text-[10px] ml-1">({batchSize}판 단위)</span>}
+                    </td>
                     <td><span className="badge-oven badge-tri">오븐 {r.ovenTri}</span></td>
                     <td className="hl-pans">{valAJ}</td>
                     <td style={{ display: 'none' }}>{valAK}</td>

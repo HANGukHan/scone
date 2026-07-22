@@ -97,7 +97,19 @@ export default function Home() {
     showMappingModal,
     setShowMappingModal,
     mappingProduct,
-    handleOpenMappingModal
+    handleOpenMappingModal,
+    newSconeSortOrder,
+    setNewSconeSortOrder,
+    newSconeOvenBatchSize,
+    setNewSconeOvenBatchSize,
+    editingFormProductId,
+    setEditingFormProductId,
+    editingSortProdId,
+    setEditingSortProdId,
+    editingSortVal,
+    setEditingSortVal,
+    handleSaveInlineSortOrder,
+    handleSaveCurrentBackup
   } = useSconeDashboard();
 
   useEffect(() => {
@@ -127,7 +139,7 @@ export default function Home() {
       {/* Top Header Card */}
       <header className="page-1 page-2">
         <div className="brand">
-          <h1>스콘 생산량 관리 시스템 (Next.js &amp; Supabase DB)</h1>
+          <h1>스콘 생산량 관리 시스템</h1>
           <p>Supabase 마스터 연동 및 실시간 오븐 배정 포털</p>
         </div>
         <div className="btn-group no-print" style={{ display: 'flex', gap: '8px' }}>
@@ -223,28 +235,45 @@ export default function Home() {
           onDragOver={(e) => {
             e.preventDefault();
             const el = e.currentTarget as HTMLElement;
-            el.style.borderColor = "var(--border-focus)";
-            el.style.background = "var(--accent-glow)";
+            el.style.borderColor = "var(--accent-color)";
+            el.style.background = "rgba(99, 102, 241, 0.1)";
           }}
           onDragLeave={(e) => {
             const el = e.currentTarget as HTMLElement;
-            el.style.borderColor = "var(--border-color)";
-            el.style.background = "rgba(255, 255, 255, 0.01)";
+            el.style.borderColor = "rgba(99, 102, 241, 0.4)";
+            el.style.background = "linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(168, 85, 247, 0.03) 100%)";
           }}
           onDrop={(e) => {
             e.preventDefault();
             const el = e.currentTarget as HTMLElement;
-            el.style.borderColor = "var(--border-color)";
-            el.style.background = "rgba(255, 255, 255, 0.01)";
+            el.style.borderColor = "rgba(99, 102, 241, 0.4)";
+            el.style.background = "linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(168, 85, 247, 0.03) 100%)";
             if (e.dataTransfer.files && e.dataTransfer.files[0]) {
               handleExcelFile(e.dataTransfer.files[0]);
             }
           }}
-          className="drop-zone"
+          className="drop-zone hover:scale-[1.01] transition-all duration-300"
+          style={{
+            border: '2px dashed rgba(99, 102, 241, 0.4)',
+            borderRadius: '12px',
+            padding: '24px',
+            textAlign: 'center',
+            cursor: 'pointer',
+            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(168, 85, 247, 0.03) 100%)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px'
+          }}
         >
-          <span className="drop-icon">📥</span>
-          <p>이지어드민 엑셀 정산 파일을 여기에 드래그하거나 클릭하여 로드</p>
-          <span className="drop-hint">(xls, xlsx 포맷 지원)</span>
+          <span className="drop-icon" style={{ fontSize: '32px' }}>📁</span>
+          <p style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-primary)' }}>
+            [ 이지어드민 엑셀 파일 업로드 ] 클릭하거나 여기에 파일을 드래그하세요
+          </p>
+          <span className="drop-hint" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+            (xls, xlsx 포맷 파일 지원)
+          </span>
         </div>
         <input 
           type="file" 
@@ -272,6 +301,23 @@ export default function Home() {
 
       {/* Page 1: Main Scone Dashboard Production Grid Table */}
       <div className="page-1" style={{ marginTop: '24px' }}>
+        {totals.shortage > 0 && (
+          <div className="alert-banner no-print" style={{
+            background: 'rgba(239, 68, 68, 0.15)',
+            border: '2px solid #ef4444',
+            borderRadius: '10px',
+            padding: '12px 16px',
+            marginBottom: '16px',
+            color: '#fca5a5',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: '18px' }}>🚨</span>
+            <span>서비스스콘이 부족합니다! (부족 수량: {totals.shortage}개)</span>
+          </div>
+        )}
         <div className="section-title">
           <span>📝 1페이지 : 대표 품목별 당일 생산량 집계표</span>
           <span id="printDate1" className="print-only" style={{ fontSize: '11px', fontWeight: 'normal', marginLeft: 'auto' }} />
@@ -344,9 +390,11 @@ export default function Home() {
         handleCreateScone={handleCreateScone}
         handleDeleteScone={handleDeleteScone}
         handleRestoreFromBackup={handleRestoreFromBackup}
+        handleSaveCurrentBackup={handleSaveCurrentBackup}
         handleClearAllDBData={handleClearAllDBData}
         handleSaveInlineAliases={handleSaveInlineAliases}
         handleSaveInlineOven={handleSaveInlineOven}
+        handleSaveInlineSortOrder={handleSaveInlineSortOrder}
         newSconeName={newSconeName}
         setNewSconeName={setNewSconeName}
         newSconeOption={newSconeOption}
@@ -375,6 +423,10 @@ export default function Home() {
         setEditingOvenProdId={setEditingOvenProdId}
         editingOvenVal={editingOvenVal}
         setEditingOvenVal={setEditingOvenVal}
+        editingSortProdId={editingSortProdId}
+        setEditingSortProdId={setEditingSortProdId}
+        editingSortVal={editingSortVal}
+        setEditingSortVal={setEditingSortVal}
         setShowPasswordChangeModal={setShowPasswordChangeModal}
         handleLoadProductToForm={handleLoadProductToForm}
         handleOpenRegisterNewModal={handleOpenRegisterNewModal}
@@ -406,6 +458,11 @@ export default function Home() {
         setNewSconeCompositionType={setNewSconeCompositionType}
         newSconePackageComponents={newSconePackageComponents}
         setNewSconePackageComponents={setNewSconePackageComponents}
+        newSconeSortOrder={newSconeSortOrder}
+        setNewSconeSortOrder={setNewSconeSortOrder}
+        newSconeOvenBatchSize={newSconeOvenBatchSize}
+        setNewSconeOvenBatchSize={setNewSconeOvenBatchSize}
+        isEditing={editingFormProductId !== null}
       />
 
       {/* Product Mapping Modal */}

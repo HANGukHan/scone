@@ -9,9 +9,11 @@ interface SconeMasterModalProps {
   handleCreateScone: (e: React.FormEvent) => void;
   handleDeleteScone: (id: string, name: string) => void;
   handleRestoreFromBackup: () => void;
+  handleSaveCurrentBackup: () => void;
   handleClearAllDBData: () => void;
   handleSaveInlineAliases: (id: string) => void;
   handleSaveInlineOven: (id: string) => void;
+  handleSaveInlineSortOrder: (id: string) => void;
   newSconeName: string;
   setNewSconeName: (val: string) => void;
   newSconeOption: string;
@@ -40,6 +42,10 @@ interface SconeMasterModalProps {
   setEditingOvenProdId: (val: string | null) => void;
   editingOvenVal: string;
   setEditingOvenVal: (val: string) => void;
+  editingSortProdId: string | null;
+  setEditingSortProdId: (val: string | null) => void;
+  editingSortVal: string;
+  setEditingSortVal: (val: string) => void;
   setShowPasswordChangeModal: (val: boolean) => void;
   handleLoadProductToForm: (p: Product) => void;
   handleOpenRegisterNewModal: (unmappedName: string) => void;
@@ -53,9 +59,11 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
   handleCreateScone,
   handleDeleteScone,
   handleRestoreFromBackup,
+  handleSaveCurrentBackup,
   handleClearAllDBData,
   handleSaveInlineAliases,
   handleSaveInlineOven,
+  handleSaveInlineSortOrder,
   newSconeName,
   setNewSconeName,
   newSconeOption,
@@ -84,6 +92,10 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
   setEditingOvenProdId,
   editingOvenVal,
   setEditingOvenVal,
+  editingSortProdId,
+  setEditingSortProdId,
+  editingSortVal,
+  setEditingSortVal,
   setShowPasswordChangeModal,
   handleLoadProductToForm,
   handleOpenRegisterNewModal,
@@ -155,10 +167,16 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
                   🔑 비밀번호 변경
                 </button>
                 <button 
+                  onClick={handleSaveCurrentBackup}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"
+                >
+                  💾 현재 스콘 마스터 백업 저장
+                </button>
+                <button 
                   onClick={handleRestoreFromBackup}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"
                 >
-                  🔄 백업 데이터 복원 (37개)
+                  🔄 백업 데이터 복원
                 </button>
                 <button 
                   onClick={handleClearAllDBData}
@@ -179,6 +197,7 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
                     <th>오븐</th>
                     <th>수율</th>
                     <th>생크림</th>
+                    <th>순서</th>
                     <th>매칭 키워드</th>
                     <th>작업</th>
                   </tr>
@@ -261,6 +280,45 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
                         </td>
                         <td>{p.pcs_per_pan}개</td>
                         <td>{p.cream_per_pan}ml</td>
+                        <td>
+                          {editingSortProdId === p.id ? (
+                            <div style={{ display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center' }}>
+                              <input 
+                                type="number" 
+                                value={editingSortVal}
+                                onChange={(e) => setEditingSortVal(e.target.value)}
+                                className="bg-[#1e2942] border border-indigo-500 rounded px-1.5 py-0.5 text-xs text-[#f8fafc]"
+                                style={{ width: '50px' }}
+                                autoFocus
+                              />
+                              <button 
+                                onClick={() => handleSaveInlineSortOrder(p.id)}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
+                              >
+                                저장
+                              </button>
+                              <button 
+                                onClick={() => setEditingSortProdId(null)}
+                                className="bg-gray-600 hover:bg-gray-700 text-white font-bold text-[10px] px-1.5 py-0.5 rounded transition"
+                              >
+                                취소
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }}>
+                              <span>{parseExtendedAliases(p.aliases).sortOrder}</span>
+                              <button 
+                                onClick={() => {
+                                  setEditingSortProdId(p.id);
+                                  setEditingSortVal(String(parseExtendedAliases(p.aliases).sortOrder));
+                                }}
+                                className="text-indigo-400 hover:text-indigo-300 text-[10px] underline cursor-pointer"
+                              >
+                                수정
+                              </button>
+                            </div>
+                          )}
+                        </td>
                         <td style={{ fontSize: '11px', opacity: 0.8, maxWidth: '280px' }}>
                           {editingProdId === p.id ? (
                             <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>

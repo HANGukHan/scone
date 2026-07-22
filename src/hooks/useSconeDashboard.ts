@@ -58,14 +58,37 @@ export interface ParsedAliases {
   productType: 'scone' | 'material';
   sconeType: 'general' | 'package';
   components: Array<{ name: string; qty: number }>;
+  ovenBatchSize: number;
+  sortOrder: number;
 }
+
+const INITIAL_ORDER_MAP: Record<string, number> = {
+  "말차초코칩스콘": 1,
+  "츄러스콘": 2,
+  "데이츠치아씨드스콘": 3,
+  "바닐라피칸스콘": 4,
+  "버터밀크비스킷스콘": 5,
+  "데솔오트밀바": 6,
+  "카카오스콘": 7,
+  "OXO스콘": 8,
+  "순수오트스콘": 9,
+  "귀리초코칩스콘": 10,
+  "딥카카오트스콘": 11,
+  "더티너티밤스콘": 12,
+  "말차오트초코칩스콘": 13,
+  "배리초코칩스콘": 14,
+  "[미니쉐이크]쑥인절미": 15,
+  "[미니쉐이크]카카오파베": 16
+};
 
 export function parseExtendedAliases(aliasesStr: string | null | undefined): ParsedAliases {
   const result: ParsedAliases = {
     cleanAliases: '',
     productType: 'scone',
     sconeType: 'general',
-    components: []
+    components: [],
+    ovenBatchSize: 3.0,
+    sortOrder: 9999
   };
   if (!aliasesStr) return result;
 
@@ -92,8 +115,21 @@ export function parseExtendedAliases(aliasesStr: string | null | undefined): Par
           result.components.push({ name, qty });
         }
       });
+    } else if (item.startsWith('batch_size=')) {
+      result.ovenBatchSize = parseFloat(item.substring(11).trim()) || 3.0;
+    } else if (item.startsWith('sort_order=')) {
+      result.sortOrder = parseInt(item.substring(11).trim(), 10) || 9999;
     }
   }
+
+  // Fallback default sort orders if sortOrder is unassigned
+  if (result.sortOrder === 9999) {
+    const firstWord = result.cleanAliases.split(',')[0].replace(/^[-]+/, '').trim();
+    if (INITIAL_ORDER_MAP[firstWord] !== undefined) {
+      result.sortOrder = INITIAL_ORDER_MAP[firstWord];
+    }
+  }
+
   return result;
 }
 
@@ -101,7 +137,9 @@ export function serializeExtendedAliases(
   cleanAliases: string, 
   productType: 'scone' | 'material', 
   sconeType: 'general' | 'package', 
-  components: Array<{ name: string; qty: number }>
+  components: Array<{ name: string; qty: number }>,
+  ovenBatchSize: number = 3.0,
+  sortOrder: number = 9999
 ): string {
   let result = cleanAliases.trim();
   if (productType === 'material') {
@@ -112,6 +150,12 @@ export function serializeExtendedAliases(
       const compStr = components.map(c => `${c.name}:${c.qty}`).join(',');
       result += ` ::components=${compStr}`;
     }
+  }
+  if (ovenBatchSize !== 3.0) {
+    result += ` ::batch_size=${ovenBatchSize}`;
+  }
+  if (sortOrder !== 9999) {
+    result += ` ::sort_order=${sortOrder}`;
   }
   return result;
 }
@@ -211,11 +255,16 @@ export function useSconeDashboard() {
   const [newSconeProductType, setNewSconeProductType] = useState<'scone' | 'material'>('scone');
   const [newSconeCompositionType, setNewSconeCompositionType] = useState<'general' | 'package'>('general');
   const [newSconePackageComponents, setNewSconePackageComponents] = useState<string>('');
+  const [newSconeSortOrder, setNewSconeSortOrder] = useState<number>(9999);
+  const [newSconeOvenBatchSize, setNewSconeOvenBatchSize] = useState<number>(3.0);
+  const [editingFormProductId, setEditingFormProductId] = useState<string | null>(null);
   const [showPasswordChangeModal, setShowPasswordChangeModal] = useState<boolean>(false);
 
   // Scone Master CRUD Inline Editing States
   const [editingProdId, setEditingProdId] = useState<string | null>(null);
   const [editingAliasesVal, setEditingAliasesVal] = useState<string>('');
+  const [editingSortProdId, setEditingSortProdId] = useState<string | null>(null);
+  const [editingSortVal, setEditingSortVal] = useState<string>('');
 
   // Password modals and forms states
   const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false);
@@ -410,18 +459,35 @@ export function useSconeDashboard() {
           const parsed = parseExtendedAliases(p.aliases);
           return parsed.productType !== 'material' && parsed.sconeType !== 'package';
         })
-        .filter(p => getOrderQtyByMatch(p) > 0)
+        .filter(p => {
+          const parsed = parseExtendedAliases(p.aliases);
+          return parsed.sortOrder < 9999 || getOrderQtyByMatch(p) > 0;
+        })
+        .sort((a, b) => {
+          const parsedA = parseExtendedAliases(a.aliases);
+          const parsedB = parseExtendedAliases(b.aliases);
+          const orderA = parsedA.sortOrder;
+          const orderB = parsedB.sortOrder;
+          if (orderA !== orderB) return orderA - orderB;
+          return a.product_name.localeCompare(b.product_name, 'ko');
+        })
         .map(p => p.product_name)
     ));
 
     setProductSequence(prevSeq => {
+      const productsInSeq = prevSeq.filter(item => item.type === 'product' && activeBaseNames.includes(item.name));
+      productsInSeq.sort((a, b) => {
+        return activeBaseNames.indexOf(a.name) - activeBaseNames.indexOf(b.name);
+      });
+
       const nextSeq: any[] = [];
+      let prodIdx = 0;
       prevSeq.forEach(item => {
         if (item.type === 'spacer') {
           nextSeq.push(item);
         } else {
-          if (activeBaseNames.includes(item.name)) {
-            nextSeq.push(item);
+          if (activeBaseNames.includes(item.name) && prodIdx < productsInSeq.length) {
+            nextSeq.push(productsInSeq[prodIdx++]);
           }
         }
       });
@@ -924,52 +990,35 @@ export function useSconeDashboard() {
     const prodNameClean = newSconeName.trim();
     const optNameClean = newSconeOption.trim() || null;
 
-    const existing = products.find(p => {
-      const nameMatch = fuzzyNormalizeProductName(p.product_name) === fuzzyNormalizeProductName(prodNameClean);
-      const optMatch = normalize(p.option_name || '') === normalize(optNameClean || '');
-      const shapeMatch = p.shape_type === newSconeShape;
-      return nameMatch && (optMatch || shapeMatch);
-    });
-
-    let mergedAliases = '';
-    const cleanNewAliases = cleanString(newSconeAliases);
-
-    if (existing) {
-      const parsedExisting = parseExtendedAliases(existing.aliases);
-      const existingList = parsedExisting.cleanAliases ? parsedExisting.cleanAliases.split(',').map(a => a.trim()).filter(Boolean) : [];
-      const newList = cleanNewAliases ? cleanNewAliases.split(',').map(a => a.trim()).filter(Boolean) : [];
-      const combinedAliases = Array.from(new Set([...existingList, ...newList])).join(', ');
-      
-      mergedAliases = serializeExtendedAliases(
-        combinedAliases,
-        newSconeProductType,
-        newSconeProductType === 'material' ? 'general' : newSconeCompositionType,
-        newSconeProductType === 'scone' && newSconeCompositionType === 'package' 
-          ? newSconePackageComponents.split(',').map(c => {
-              const idx = c.lastIndexOf(':');
-              return {
-                name: idx !== -1 ? c.substring(0, idx).trim() : c.trim(),
-                qty: idx !== -1 ? parseInt(c.substring(idx + 1).trim(), 10) || 1 : 1
-              };
-            }).filter(c => c.name)
-          : []
-      );
+    let existing: Product | undefined = undefined;
+    if (editingFormProductId) {
+      existing = products.find(p => p.id === editingFormProductId);
     } else {
-      mergedAliases = serializeExtendedAliases(
-        cleanNewAliases,
-        newSconeProductType,
-        newSconeProductType === 'material' ? 'general' : newSconeCompositionType,
-        newSconeProductType === 'scone' && newSconeCompositionType === 'package' 
-          ? newSconePackageComponents.split(',').map(c => {
-              const idx = c.lastIndexOf(':');
-              return {
-                name: idx !== -1 ? c.substring(0, idx).trim() : c.trim(),
-                qty: idx !== -1 ? parseInt(c.substring(idx + 1).trim(), 10) || 1 : 1
-              };
-            }).filter(c => c.name)
-          : []
-      );
+      existing = products.find(p => {
+        const nameMatch = fuzzyNormalizeProductName(p.product_name) === fuzzyNormalizeProductName(prodNameClean);
+        const optMatch = normalize(p.option_name || '') === normalize(optNameClean || '');
+        const shapeMatch = p.shape_type === newSconeShape;
+        return nameMatch && (optMatch || shapeMatch);
+      });
     }
+
+    const cleanNewAliases = cleanString(newSconeAliases);
+    const serializedAliases = serializeExtendedAliases(
+      cleanNewAliases,
+      newSconeProductType,
+      newSconeProductType === 'material' ? 'general' : newSconeCompositionType,
+      newSconeProductType === 'scone' && newSconeCompositionType === 'package' 
+        ? newSconePackageComponents.split(',').map(c => {
+            const idx = c.lastIndexOf(':');
+            return {
+              name: idx !== -1 ? c.substring(0, idx).trim() : c.trim(),
+              qty: idx !== -1 ? parseInt(c.substring(idx + 1).trim(), 10) || 1 : 1
+            };
+          }).filter(c => c.name)
+        : [],
+      newSconeOvenBatchSize,
+      newSconeSortOrder
+    );
 
     const nextProduct: Omit<Product, 'id'> & { id?: string } = {
       product_name: prodNameClean,
@@ -979,7 +1028,7 @@ export function useSconeDashboard() {
       pcs_per_pan: newSconeYield,
       cream_per_pan: newSconeCream,
       is_service: existing ? existing.is_service : false,
-      aliases: mergedAliases
+      aliases: serializedAliases
     };
 
     if (existing) {
@@ -1049,6 +1098,9 @@ export function useSconeDashboard() {
     setNewSconeProductType('scone');
     setNewSconeCompositionType('general');
     setNewSconePackageComponents('');
+    setNewSconeSortOrder(9999);
+    setNewSconeOvenBatchSize(3.0);
+    setEditingFormProductId(null);
     setShowRegisterNewModal(false);
   }
 
@@ -1074,8 +1126,23 @@ export function useSconeDashboard() {
     }
   }
 
+  function handleSaveCurrentBackup() {
+    localStorage.setItem('masterProductsBackup', JSON.stringify(products));
+    alert("현재 등록된 스콘 마스터 전체 목록이 브라우저 백업으로 저장되었습니다!");
+  }
+
   async function handleRestoreFromBackup() {
-    if (!confirm("🔄 백업 데이터(37개 상품 마스터)를 Supabase DB에 다시 복구하시겠습니까?")) return;
+    const rawBackup = localStorage.getItem('masterProductsBackup');
+    let restoreSource = INITIAL_PRODUCTS;
+    if (rawBackup) {
+      try {
+        restoreSource = JSON.parse(rawBackup);
+      } catch (e) {
+        console.error("Error parsing backup from localStorage, fallback to INITIAL_PRODUCTS", e);
+      }
+    }
+
+    if (!confirm(`🔄 ${rawBackup ? '가장 최근에 저장한 백업 데이터' : '기본 백업 데이터(37개 상품 마스터)'}를 Supabase DB에 복구하시겠습니까?`)) return;
     
     if (hasValidSupabaseConfig) {
       try {
@@ -1084,7 +1151,7 @@ export function useSconeDashboard() {
           .delete()
           .neq('id', '00000000-0000-0000-0000-000000000000');
 
-        const seedPayload = INITIAL_PRODUCTS.map(p => {
+        const seedPayload = restoreSource.map(p => {
           const { id, ...rest } = p;
           return rest;
         });
@@ -1117,14 +1184,14 @@ export function useSconeDashboard() {
 
         if (data) {
           setProducts(data);
-          alert("Supabase DB에 백업 데이터 37개 스콘 마스터 복원이 완료되었습니다!");
+          alert("백업 데이터 복원이 완료되었습니다!");
         }
       } catch (err: any) {
         alert("복원 실패: " + err.message);
       }
     } else {
-      setProducts(INITIAL_PRODUCTS);
-      alert("로컬 마스터에 백업 데이터 37개 구성이 복원되었습니다. (Supabase 미연동)");
+      setProducts(restoreSource);
+      alert("로컬 마스터에 백업 데이터 복원이 완료되었습니다. (Supabase 미연동)");
     }
   }
 
@@ -1139,7 +1206,9 @@ export function useSconeDashboard() {
       updatedAliasesClean,
       parsedExisting.productType,
       parsedExisting.sconeType,
-      parsedExisting.components
+      parsedExisting.components,
+      parsedExisting.ovenBatchSize,
+      parsedExisting.sortOrder
     );
 
     if (hasValidSupabaseConfig) {
@@ -1192,6 +1261,44 @@ export function useSconeDashboard() {
       alert("로컬 마스터에 오븐 번호가 수정되었습니다. (Supabase 미연동)");
     }
     setEditingOvenProdId(null);
+  }
+
+  async function handleSaveInlineSortOrder(id: string) {
+    const prod = products.find(p => p.id === id);
+    if (!prod) return;
+
+    const updatedSortVal = parseInt(editingSortVal, 10) || 9999;
+    const parsedExisting = parseExtendedAliases(prod.aliases);
+    const updatedAliases = serializeExtendedAliases(
+      parsedExisting.cleanAliases,
+      parsedExisting.productType,
+      parsedExisting.sconeType,
+      parsedExisting.components,
+      parsedExisting.ovenBatchSize,
+      updatedSortVal
+    );
+
+    if (hasValidSupabaseConfig) {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .update({ aliases: updatedAliases })
+          .eq('id', id)
+          .select();
+        
+        if (error) throw error;
+        if (data) {
+          setProducts(prev => prev.map(p => p.id === id ? data[0] : p));
+          alert("표시 순서가 성공적으로 수정되었습니다!");
+        }
+      } catch (err: any) {
+        alert("표시 순서 수정 실패: " + err.message);
+      }
+    } else {
+      setProducts(prev => prev.map(p => p.id === id ? { ...p, aliases: updatedAliases } : p));
+      alert("로컬 마스터에 표시 순서가 수정되었습니다. (Supabase 미연동)");
+    }
+    setEditingSortProdId(null);
   }
 
   function handleRegisterInstantly(rawUnregisteredName: string) {
@@ -1293,6 +1400,10 @@ export function useSconeDashboard() {
     } else {
       setNewSconePackageComponents('');
     }
+    setNewSconeSortOrder(parsed.sortOrder);
+    setNewSconeOvenBatchSize(parsed.ovenBatchSize);
+    setEditingFormProductId(p.id);
+    setShowRegisterNewModal(true);
   }
 
   function handleSelectMappingTarget(unmappedName: string, productId: string) {
@@ -1368,7 +1479,9 @@ export function useSconeDashboard() {
     setNewSconeProductType('scone');
     setNewSconeCompositionType('general');
     setNewSconePackageComponents('');
-    
+    setNewSconeSortOrder(9999);
+    setNewSconeOvenBatchSize(3.0);
+    setEditingFormProductId(null);
     setShowRegisterNewModal(true);
   }
 
@@ -1436,6 +1549,12 @@ export function useSconeDashboard() {
     setNewSconeCompositionType,
     newSconePackageComponents,
     setNewSconePackageComponents,
+    newSconeSortOrder,
+    setNewSconeSortOrder,
+    newSconeOvenBatchSize,
+    setNewSconeOvenBatchSize,
+    editingFormProductId,
+    setEditingFormProductId,
 
     // Inline edit states
     editingProdId,
@@ -1446,6 +1565,10 @@ export function useSconeDashboard() {
     setEditingOvenProdId,
     editingOvenVal,
     setEditingOvenVal,
+    editingSortProdId,
+    setEditingSortProdId,
+    editingSortVal,
+    setEditingSortVal,
 
     // Modals
     showPasswordModal,
@@ -1500,8 +1623,10 @@ export function useSconeDashboard() {
     handleDeleteScone,
     handleClearAllDBData,
     handleRestoreFromBackup,
+    handleSaveCurrentBackup,
     handleSaveInlineAliases,
     handleSaveInlineOven,
+    handleSaveInlineSortOrder,
     handleRegisterInstantly,
     handlePasswordVerify,
     handleChangePassword,

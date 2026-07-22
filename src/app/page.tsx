@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx';
 import { supabase, hasValidSupabaseConfig } from '../lib/supabase';
 import { Product, OrderWithProduct, CalculatedRow, OvenBatch } from '../lib/types';
 
-// Embedded initial data based on Test1.xlsx
+// Embedded initial fallback data based on Test1.xlsx
 const DEFAULT_ORDERS = [
   { "name": "-------[Gourmet M]피넛머드", "option": "[스무스]", "qty": 7 },
   { "name": "-------소분용 OPP 봉투 20매", "option": "[간식용]", "qty": 1 },
@@ -57,60 +57,92 @@ const DEFAULT_ORDERS = [
   { "name": "스타터팩", "option": null, "qty": 3 }
 ];
 
-// Main Predefined Products
-const PRODUCTS_MOCK = [
-  { name: "말차초코칩스콘", ovenTri: 1, ovenStickCube: null, creamPerPan: 170, hasTri: true, triKey: "-말차초코칩스콘", triYield: 8, hasCube: false, hasStick: false },
-  { name: "츄러스콘", ovenTri: 2, ovenStickCube: 4, creamPerPan: 174, hasTri: true, triKey: "-통밀츄러스콘", triYield: 8, hasCube: true, cubeKey: "-----[하프팩]통밀츄러미니큐브", cubeYield: 2, hasStick: true, stickKey: "----[세트]통밀츄러스틱 3팩", stickYield: 9, stickStarter: true },
-  { name: "데이츠치아씨드스콘", ovenTri: 11, ovenStickCube: 4, creamPerPan: 160, hasTri: true, triKey: "-데이츠치아씨드스콘", triYield: 8, hasCube: true, cubeKey: "-----[하프팩]데치미니큐브", cubeYield: 2, hasStick: true, stickKey: "----[세트]데치스틱 3팩", stickYield: 9, stickStarter: false },
-  { name: "바닐라피칸스콘", ovenTri: 4, ovenStickCube: 4, creamPerPan: 170, hasTri: true, triKey: "-바닐라피칸스콘", triYield: 8, hasCube: true, cubeKey: "-----[하프팩]바닐라피칸미니큐브", cubeYield: 2, hasStick: true, stickKey: "----[세트]바닐라피칸스틱 3팩", stickYield: 9, stickStarter: true },
-  { name: "버터밀크비스킷스콘", ovenTri: 7, ovenStickCube: 8, creamPerPan: 130, hasTri: true, triKey: "-버터밀크비스킷스콘", triYield: 8, hasCube: true, cubeKey: "-----[하프팩]버터밀크비스킷미니큐브", cubeYield: 2, hasStick: true, stickKey: "----[세트]버터밀크비스킷스틱 3팩", stickYield: 9, stickStarter: false },
-  { name: "[미니쉐이크]쑥인절미", ovenTri: null, ovenStickCube: 2, creamPerPan: 190, hasTri: false, hasCube: true, cubeKey: "-----[미니쉐이크]쑥인절미", cubeYield: 4, cubeStarter: true, hasStick: false },
-  { name: "데솔오트밀바", ovenTri: 1, ovenStickCube: 4, creamPerPan: 160, hasTri: true, triKey: "-데솔오트밀바", triYield: 10, hasCube: true, cubeKey: "-----[하프팩]데솔오바미니큐브", cubeYield: 2, hasStick: false },
-  { name: "[미니쉐이크]카카오파베", ovenTri: null, ovenStickCube: 2, creamPerPan: 180, hasTri: false, hasCube: true, cubeKey: "-----[미니쉐이크]카카오파베", cubeYield: 4, hasStick: false },
-  { name: "카카오스콘", ovenTri: 1, ovenStickCube: 2, creamPerPan: 180, hasTri: true, triKey: "-카카오스콘", triYield: 8, hasCube: true, cubeKey: "-----[하프팩]카카오미니큐브", cubeYield: 2, hasStick: true, stickKey: "----[세트]카카오스틱 3팩", stickYield: 9, stickStarter: false },
-  { name: "OXO스콘", ovenTri: 5, ovenStickCube: 8, creamPerPan: 150, hasTri: true, triKey: "-OXO스콘", triYield: 8, triStarter: true, hasCube: true, cubeKey: "-----[하프팩]OXO미니큐브", cubeYield: 2, hasStick: true, stickKey: "----[세트]OXO스틱 3팩", stickYield: 9, stickStarter: false },
-  { name: "순수오트스콘", ovenTri: 5, ovenStickCube: 8, creamPerPan: 140, hasTri: true, triKey: "-순수오트스콘", triYield: 8, hasCube: true, cubeKey: "-----[하프팩]순수오트미니큐브", cubeYield: 2, hasStick: false },
-  { name: "귀리초코칩스콘", ovenTri: 1, ovenStickCube: 4, creamPerPan: 180, hasTri: true, triKey: "-귀리초코칩스콘", triYield: 8, hasCube: true, cubeKey: "-----[하프팩]귀초칩미니큐브", cubeYield: 2, hasStick: false },
-  { name: "딥카카오트스콘", ovenTri: 7, ovenStickCube: 7, creamPerPan: 130, hasTri: true, triKey: "-딥카카오트스콘", triYield: 8, hasCube: true, cubeKey: "-----[하프팩]딥카카오트미니큐브", cubeYield: 2, hasStick: false },
-  { name: "더티너티밤스콘", ovenTri: 7, ovenStickCube: 8, creamPerPan: 110, hasTri: true, triKey: "-더티너티밤스콘", triYield: 8, hasCube: true, cubeKey: "-----[하프팩]더티너티밤미니큐브", cubeYield: 2, hasStick: true, stickKey: "----[세트]더티너티밤스틱 3팩", stickYield: 9, stickStarter: false },
-  { name: "말차오트초코칩스콘", ovenTri: 7, ovenStickCube: 8, creamPerPan: 125, hasTri: true, triKey: "-말차오트초코칩스콘", triYield: 8, hasCube: true, cubeKey: "-----[하프팩]말차오트초코칩미니큐브", cubeYield: 2, hasStick: false },
-  { name: "배리초코칩스콘", ovenTri: 7, ovenStickCube: 8, creamPerPan: 140, hasTri: true, triKey: "-배리초코칩스콘", triYield: 8, hasCube: true, cubeKey: "-----[하프팩]배리초코칩미니큐브", cubeYield: 2, hasStick: false }
-];
+// Fallback initial products
+const INITIAL_PRODUCTS = [
+  { id: "1", product_name: "말차초코칩스콘", option_name: null, shape_type: "삼각스콘", oven_number: 1, pcs_per_pan: 8, cream_per_pan: 170, is_service: false },
+  { id: "2", product_name: "츄러스콘", option_name: null, shape_type: "삼각스콘", oven_number: 2, pcs_per_pan: 8, cream_per_pan: 174, is_service: false },
+  { id: "3", product_name: "츄러스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
+  { id: "4", product_name: "츄러스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 4, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
+  { id: "5", product_name: "데이츠치아씨드스콘", option_name: null, shape_type: "삼각스콘", oven_number: 11, pcs_per_pan: 8, cream_per_pan: 160, is_service: false },
+  { id: "6", product_name: "데이츠치아씨드스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
+  { id: "7", product_name: "데이츠치아씨드스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 4, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
+  { id: "8", product_name: "바닐라피칸스콘", option_name: null, shape_type: "삼각스콘", oven_number: 4, pcs_per_pan: 8, cream_per_pan: 170, is_service: false },
+  { id: "9", product_name: "바닐라피칸스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
+  { id: "10", product_name: "바닐라피칸스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 4, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
+  { id: "11", product_name: "버터밀크비스킷스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 130, is_service: false },
+  { id: "12", product_name: "버터밀크비스킷스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
+  { id: "13", product_name: "버터밀크비스킷스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 8, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
+  { id: "14", product_name: "데솔오트밀바", option_name: null, shape_type: "삼각스콘", oven_number: 1, pcs_per_pan: 10, cream_per_pan: 160, is_service: false },
+  { id: "15", product_name: "데솔오트밀바", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
+  { id: "16", product_name: "카카오스콘", option_name: null, shape_type: "삼각스콘", oven_number: 1, pcs_per_pan: 8, cream_per_pan: 180, is_service: false },
+  { id: "17", product_name: "카카오스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 2, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
+  { id: "18", product_name: "카카오스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 2, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
+  { id: "19", product_name: "OXO스콘", option_name: null, shape_type: "삼각스콘", oven_number: 5, pcs_per_pan: 8, cream_per_pan: 150, is_service: false },
+  { id: "20", product_name: "OXO스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
+  { id: "21", product_name: "OXO스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 8, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
+  { id: "22", product_name: "순수오트스콘", option_name: null, shape_type: "삼각스콘", oven_number: 5, pcs_per_pan: 8, cream_per_pan: 140, is_service: false },
+  { id: "23", product_name: "순수오트스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
+  { id: "24", product_name: "귀리초코칩스콘", option_name: null, shape_type: "삼각스콘", oven_number: 1, pcs_per_pan: 8, cream_per_pan: 180, is_service: false },
+  { id: "25", product_name: "귀리초코칩스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 4, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
+  { id: "26", product_name: "딥카카오트스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 130, is_service: false },
+  { id: "27", product_name: "딥카카오트스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 7, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
+  { id: "28", product_name: "더티너티밤스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 110, is_service: false },
+  { id: "29", product_name: "더티너티밤스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
+  { id: "30", product_name: "더티너티밤스콘", option_name: "[스틱스콘]", shape_type: "스틱스콘", oven_number: 8, pcs_per_pan: 9, cream_per_pan: 0, is_service: false },
+  { id: "31", product_name: "말차오트초코칩스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 125, is_service: false },
+  { id: "32", product_name: "말차오트초코칩스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
+  { id: "33", product_name: "배리초코칩스콘", option_name: null, shape_type: "삼각스콘", oven_number: 7, pcs_per_pan: 8, cream_per_pan: 140, is_service: false },
+  { id: "34", product_name: "배리초코칩스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false },
+  { id: "35", product_name: "[미니쉐이크]쑥인절미", option_name: null, shape_type: "미니큐브", oven_number: 2, pcs_per_pan: 4, cream_per_pan: 190, is_service: false },
+  { id: "36", product_name: "[미니쉐이크]카카오파베", option_name: null, shape_type: "미니큐브", oven_number: 2, pcs_per_pan: 4, cream_per_pan: 180, is_service: false },
+  { id: "37", product_name: "서비스스콘", option_name: null, shape_type: "기타", oven_number: null, pcs_per_pan: 1, cream_per_pan: 0, is_service: true }
+] as Product[];
 
 export default function Home() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [rawText, setRawText] = useState<string>('');
   
   // App States
+  const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Record<string, number>>({});
   const [carryOverTri, setCarryOverTri] = useState<Record<string, number>>({});
   const [manualAdjustTri, setManualAdjustTri] = useState<Record<string, number>>({});
   const [carryOverCube, setCarryOverCube] = useState<Record<string, number>>({});
   const [productSequence, setProductSequence] = useState<any[]>([]);
 
+  // Scone Master CRUD Form States
+  const [newSconeName, setNewSconeName] = useState<string>('');
+  const [newSconeOption, setNewSconeOption] = useState<string>('');
+  const [newSconeShape, setNewSconeShape] = useState<'삼각스콘' | '미니큐브' | '스틱스콘' | '기타'>('삼각스콘');
+  const [newSconeOven, setNewSconeOven] = useState<string>('');
+  const [newSconeYield, setNewSconeYield] = useState<number>(8);
+  const [newSconeCream, setNewSconeCream] = useState<number>(170);
+
+  // Unregistered alert warnings state
+  const [unregisteredScones, setUnregisteredScones] = useState<string[]>([]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragIdxRef = useRef<number | null>(null);
+  const crudSectionRef = useRef<HTMLDivElement>(null);
 
-  // Initialize
+  // 1. Initialize & Fetch Scone Master Configuration
   useEffect(() => {
-    // Sequence setup
-    const seq = PRODUCTS_MOCK.map(p => ({
-      id: p.name,
-      type: 'product',
-      name: p.name
-    }));
-    setProductSequence(seq);
-
-    // Initial Carryovers & adjust
-    const initC: Record<string, number> = {};
-    const initM: Record<string, number> = {};
-    PRODUCTS_MOCK.forEach(p => {
-      initC[p.name] = 0;
-      initM[p.name] = 0;
-    });
-    setCarryOverTri(initC);
-    setManualAdjustTri(initM);
-    setCarryOverCube(initC);
+    async function loadMasterProducts() {
+      if (hasValidSupabaseConfig) {
+        try {
+          const { data, error } = await supabase.from('products').select('*');
+          if (!error && data) {
+            setProducts(data);
+            return;
+          }
+        } catch (e) {
+          console.error("Error loading products from Supabase:", e);
+        }
+      }
+      // Fallback
+      setProducts(INITIAL_PRODUCTS);
+    }
+    loadMasterProducts();
 
     // Load initial default dataset
     loadData(DEFAULT_ORDERS);
@@ -124,6 +156,79 @@ export default function Home() {
     if (print1) print1.innerText = "출력일시: " + formatted;
     if (print2) print2.innerText = "출력일시: " + formatted;
   }, []);
+
+  // Update product layout sequences automatically when product master database updates
+  useEffect(() => {
+    if (products.length === 0) return;
+    
+    // Categorized sequence grouping (triangles first, then cubes and sticks)
+    const activeProducts = products.filter(p => !p.is_service);
+    
+    const seq = activeProducts.map(p => {
+      // Create unified clean display name
+      const displayName = p.product_name + (p.option_name ? p.option_name : "");
+      return {
+        id: p.id,
+        type: 'product',
+        name: displayName,
+        rawProduct: p
+      };
+    });
+
+    // Remove duplicates or merge items, maintaining spacer integrations
+    setProductSequence(prevSeq => {
+      if (prevSeq.length === 0) return seq;
+      const nextSeq: any[] = [];
+      
+      prevSeq.forEach(item => {
+        if (item.type === 'spacer') {
+          nextSeq.push(item);
+        } else {
+          // Check if product still exists in updated products array
+          const exist = seq.find(s => s.id === item.id);
+          if (exist) {
+            nextSeq.push(exist);
+          }
+        }
+      });
+
+      // Append any brand new products not currently in the sequence
+      seq.forEach(s => {
+        if (!nextSeq.find(n => n.id === s.id)) {
+          nextSeq.push(s);
+        }
+      });
+
+      return nextSeq;
+    });
+
+    // Sync input structures
+    setCarryOverTri(prev => {
+      const next = { ...prev };
+      products.forEach(p => {
+        const name = p.product_name + (p.option_name || "");
+        if (next[name] === undefined) next[name] = 0;
+      });
+      return next;
+    });
+    setManualAdjustTri(prev => {
+      const next = { ...prev };
+      products.forEach(p => {
+        const name = p.product_name + (p.option_name || "");
+        if (next[name] === undefined) next[name] = 0;
+      });
+      return next;
+    });
+    setCarryOverCube(prev => {
+      const next = { ...prev };
+      products.forEach(p => {
+        const name = p.product_name + (p.option_name || "");
+        if (next[name] === undefined) next[name] = 0;
+      });
+      return next;
+    });
+
+  }, [products]);
 
   // Theme Sync
   useEffect(() => {
@@ -152,27 +257,72 @@ export default function Home() {
     return orders[key] || 0;
   }
 
+  // Lookup helper using master products database
+  function getOrderQtyByMatch(product: Product) {
+    // Generate matches:
+    // Some excel rows have prefixes like "---단호박스콘" or "----[세트]OXO스틱 3팩"
+    // We match the keys mapped in our database matching patterns
+    let key = product.product_name + (product.option_name || "");
+    
+    // Build lookup keys
+    let lookupQty = 0;
+    if (product.shape_type === '삼각스콘') {
+      // E.g. matches "-말차초코칩스콘" or "---단호박스콘"
+      const simpleName = `-${product.product_name}`;
+      const prefixName = `---${product.product_name}`;
+      lookupQty = getOrderQty(simpleName) || getOrderQty(prefixName) || getOrderQty(key);
+    } else if (product.shape_type === '미니큐브') {
+      // E.g. matches "-----[하프팩]바닐라피칸미니큐브" or "-----[미니쉐이크]쑥인절미"
+      const prefixCube = `-----[하프팩]${product.product_name.replace("스콘","")}미니큐브`;
+      const shakeCube = `-----[미니쉐이크]${product.product_name.replace("[미니쉐이크]","")}`;
+      lookupQty = getOrderQty(prefixCube) || getOrderQty(shakeCube) || getOrderQty(key);
+    } else if (product.shape_type === '스틱스콘') {
+      // E.g. matches "----[세트]바닐라피칸스틱 3팩"
+      const prefixStick = `----[세트]${product.product_name.replace("스콘","")}스틱 3팩`;
+      lookupQty = getOrderQty(prefixStick) || getOrderQty(key);
+    } else {
+      lookupQty = getOrderQty(product.product_name) || getOrderQty(key);
+    }
+    return lookupQty;
+  }
+
   // Calculate live outputs reactively
   const computedData = useMemo(() => {
     const starterPack = getOrderQty("스타터팩", null);
-    const serviceScone = getOrderQty("서비스스콘", null);
+    const serviceProduct = products.find(p => p.is_service);
+    const serviceScone = serviceProduct ? getOrderQtyByMatch(serviceProduct) : 0;
 
     const data: Record<string, any> = {};
 
-    PRODUCTS_MOCK.forEach(prod => {
-      const r: any = { ...prod };
+    productSequence.forEach(item => {
+      if (item.type === 'spacer') return;
+      const prod = item.rawProduct as Product;
+      if (!prod) return;
+
+      const r: any = { 
+        name: prod.product_name + (prod.option_name || ""),
+        ovenTri: prod.shape_type === '삼각스콘' ? prod.oven_number : null,
+        ovenStickCube: prod.shape_type !== '삼각스콘' ? prod.oven_number : null,
+        creamPerPan: prod.cream_per_pan,
+        hasTri: prod.shape_type === '삼각스콘',
+        hasCube: prod.shape_type === '미니큐브',
+        hasStick: prod.shape_type === '스틱스콘'
+      };
+
+      const orderQty = getOrderQtyByMatch(prod);
 
       // A. Mini Cube Calculations
-      if (prod.hasCube) {
-        let ordersCube = getOrderQty(prod.cubeKey!, null);
-        if (prod.cubeStarter) {
+      if (r.hasCube) {
+        let ordersCube = orderQty;
+        // Check if starter pack adds to it
+        if (prod.product_name.includes("쑥인절미") || prod.product_name.includes("통밀츄러") || prod.product_name.includes("바닐라피칸") || prod.product_name.includes("OXO")) {
           ordersCube += starterPack;
         }
 
         r.cubeOrders = ordersCube;
-        r.cubeZ = carryOverCube[prod.name] || 0;
+        r.cubeZ = carryOverCube[r.name] || 0;
 
-        if (prod.cubeYield === 4) { // [미니쉐이크] products (yield = 4)
+        if (prod.pcs_per_pan === 4) { // [미니쉐이크] products
           r.cubeX = Math.ceil(ordersCube / 4);
           r.cubeAA = r.cubeX * 4 - ordersCube + r.cubeZ;
           if (r.cubeZ > 0 && r.cubeAA >= 4) {
@@ -182,7 +332,7 @@ export default function Home() {
             r.cubeY = r.cubeX;
             r.cubeAB = r.cubeAA;
           }
-        } else { // Normal mini cube (yield = 2)
+        } else { // Normal mini cube (pcs = 2)
           r.cubeX = Math.ceil(ordersCube / 2);
           r.cubeAA = r.cubeX * 2 - ordersCube;
           if (r.cubeAA === 1) {
@@ -202,9 +352,9 @@ export default function Home() {
       }
 
       // B. Stick Scone Calculations
-      if (prod.hasStick) {
-        let ordersStick = getOrderQty(prod.stickKey!, null);
-        let starterStick = prod.stickStarter ? starterPack : 0;
+      if (r.hasStick) {
+        let ordersStick = orderQty;
+        let starterStick = (prod.product_name.includes("통밀츄러") || prod.product_name.includes("바닐라피칸")) ? starterPack : 0;
         
         r.stickAC = Math.ceil((starterStick / 9) + (ordersStick / 3));
         r.stickAD = r.stickAC * 9 - (starterStick + ordersStick * 3);
@@ -214,20 +364,24 @@ export default function Home() {
       }
 
       // C. Triangular Scone Calculations
-      if (prod.hasTri) {
-        let ordersTri = getOrderQty(prod.triKey!, null);
-        if (prod.triStarter) {
+      if (r.hasTri) {
+        let ordersTri = orderQty;
+        if (prod.product_name.includes("OXO스콘")) {
           ordersTri += starterPack;
         }
         r.triR = ordersTri;
-        r.triS = carryOverTri[prod.name] || 0;
+        r.triS = carryOverTri[r.name] || 0;
         r.triNet = Math.max(0, r.triR - r.triS);
         
-        const yieldTri = prod.triYield!;
+        const yieldTri = prod.pcs_per_pan;
         r.triT = Math.ceil(r.triNet / yieldTri);
         r.triV = r.triT * yieldTri - r.triNet;
 
-        const cubeAA = r.cubeAA || 0;
+        // Try to find matching cube row to sync carry-over margins
+        const matchingCube = products.find(p => p.product_name === prod.product_name && p.shape_type === '미니큐브');
+        const cubeName = matchingCube ? matchingCube.product_name + (matchingCube.option_name || "") : "";
+        const cubeAA = data[cubeName]?.cubeAA || 0;
+
         if (cubeAA === 1 && r.triV >= (yieldTri / 2)) {
           r.triU_calc = r.triT - 0.5;
         } else if (cubeAA === 1) {
@@ -236,7 +390,7 @@ export default function Home() {
           r.triU_calc = r.triT;
         }
         
-        r.triX_adj = manualAdjustTri[prod.name] || 0;
+        r.triX_adj = manualAdjustTri[r.name] || 0;
         r.triU = r.triU_calc + r.triX_adj;
 
         const baseTriAA = r.triV + (yieldTri / 2) * cubeAA;
@@ -256,17 +410,18 @@ export default function Home() {
 
       // D. Totals
       r.totalQ = r.triU + r.stickAC + r.cubeY;
-      r.creamAK = r.totalQ * prod.creamPerPan;
+      r.creamAK = r.totalQ * prod.cream_per_pan;
 
-      data[prod.name] = r;
+      data[r.name] = r;
     });
 
     return data;
-  }, [orders, carryOverTri, manualAdjustTri, carryOverCube]);
+  }, [productSequence, products, orders, carryOverTri, manualAdjustTri, carryOverCube]);
 
   // Overall summary indicators
   const totals = useMemo(() => {
-    const serviceSconeOrdered = getOrderQty("서비스스콘", null);
+    const serviceProduct = products.find(p => p.is_service);
+    const serviceSconeOrdered = serviceProduct ? getOrderQtyByMatch(serviceProduct) : 0;
     const rows = Object.values(computedData);
     
     const totalPans = rows.reduce((sum, r) => sum + r.totalQ, 0);
@@ -286,7 +441,7 @@ export default function Home() {
       shortage,
       serviceSconeOrdered
     };
-  }, [computedData, orders]);
+  }, [computedData, orders, products]);
 
   // Sub-materials breakdown
   const subMaterials = useMemo(() => {
@@ -305,7 +460,7 @@ export default function Home() {
     };
   }, [orders]);
 
-  // Excel parsing handler
+  // Excel parsing handler + Unregistered match alerts
   function handleExcelFile(file: File) {
     const reader = new FileReader();
     reader.onload = (e: any) => {
@@ -333,21 +488,52 @@ export default function Home() {
         if (qtyColIdx === -1) qtyColIdx = 16; // Col Q
 
         const parsed = [];
+        const missingList: string[] = [];
+
         for (let r = 1; r < rows.length; r++) {
           const row = rows[r];
           if (!row) continue;
-          const name = row[nameColIdx];
+          const rawName = row[nameColIdx];
           const option = row[optionColIdx];
           const qty = parseInt(row[qtyColIdx] || 0, 10);
-          if (name) {
+          
+          if (rawName) {
+            const trimmedName = String(rawName).trim();
+            const optionString = option ? String(option).trim() : "";
+            
+            // Check if this product is mapped in our master database
+            const matched = products.find(p => {
+              // Exact name match or shape key check
+              const baseName = trimmedName.replace(/^[-]+/g, "");
+              const pNameClean = p.product_name;
+              
+              if (p.shape_type === '삼각스콘' && trimmedName.startsWith("-") && !trimmedName.includes("미니큐브") && !trimmedName.includes("스틱")) {
+                return baseName === pNameClean && !p.option_name;
+              } else if (p.shape_type === '미니큐브' && (trimmedName.includes("미니큐브") || trimmedName.includes("미니쉐이크"))) {
+                return pNameClean.includes(baseName) || baseName.includes(pNameClean.replace("-----[하프팩]","").replace("-----[미니쉐이크]",""));
+              } else if (p.shape_type === '스틱스콘' && trimmedName.includes("스틱")) {
+                return pNameClean.includes(baseName) || baseName.includes(pNameClean.replace("----[세트]","").replace("스틱 3팩",""));
+              }
+              return (p.product_name === trimmedName && (p.option_name || "") === optionString);
+            });
+
+            // If not found in database and is not standard spacer or service item
+            const isStandardScone = trimmedName.startsWith("-") || trimmedName.includes("스콘") || trimmedName.includes("큐브") || trimmedName.includes("스틱") || trimmedName.includes("요프") || trimmedName.includes("머드") || trimmedName.includes("OPP");
+            if (!matched && isStandardScone && !trimmedName.includes("스타터팩") && !trimmedName.includes("서비스스콘")) {
+              if (!missingList.includes(trimmedName)) {
+                missingList.push(trimmedName);
+              }
+            }
+
             parsed.push({
-              name: String(name).trim(),
+              name: trimmedName,
               option: option ? String(option).trim() : null,
               qty: qty
             });
           }
         }
         
+        setUnregisteredScones(missingList);
         loadData(parsed);
       } catch (err: any) {
         alert("엑셀 파일 해석 오류: " + err.message);
@@ -378,6 +564,108 @@ export default function Home() {
     } catch (e: any) {
       alert("데이터 파싱 중 오류가 발생했습니다: " + e.message);
     }
+  }
+
+  // Scone Master CRUD Database Actions
+  async function handleCreateScone(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newSconeName.trim()) {
+      alert("스콘명을 입력해 주세요.");
+      return;
+    }
+
+    const nextProduct: Omit<Product, 'id'> = {
+      product_name: newSconeName.trim(),
+      option_name: newSconeOption.trim() || null,
+      shape_type: newSconeShape,
+      oven_number: parseInt(newSconeOven, 10) || null,
+      pcs_per_pan: newSconeYield,
+      cream_per_pan: newSconeCream,
+      is_service: false
+    };
+
+    if (hasValidSupabaseConfig) {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .insert([nextProduct])
+          .select();
+        
+        if (error) throw error;
+        if (data) {
+          setProducts(prev => [...prev, data[0]]);
+          alert("스콘이 Supabase DB에 성공적으로 등록되었습니다!");
+        }
+      } catch (err: any) {
+        alert("DB 등록 실패: " + err.message);
+      }
+    } else {
+      // Simulate locally
+      const localNew: Product = {
+        id: "local-" + Date.now(),
+        ...nextProduct
+      };
+      setProducts(prev => [...prev, localNew]);
+      alert("스콘이 로컬 임시 마스터에 등록되었습니다! (Supabase 미연동)");
+    }
+
+    // Clear form inputs
+    setNewSconeName('');
+    setNewSconeOption('');
+    setNewSconeOven('');
+    
+    // Remove from unregistered warning list if matched
+    setUnregisteredScones(prev => prev.filter(s => !s.includes(newSconeName)));
+  }
+
+  async function handleDeleteScone(id: string, name: string) {
+    if (!confirm(`[${name}] 스콘 구성을 마스터 리스트에서 삭제하시겠습니까?`)) return;
+
+    if (hasValidSupabaseConfig) {
+      try {
+        const { error } = await supabase
+          .from('products')
+          .delete()
+          .eq('id', id);
+        
+        if (error) throw error;
+        setProducts(prev => prev.filter(p => p.id !== id));
+        alert("삭제되었습니다.");
+      } catch (err: any) {
+        alert("삭제 실패: " + err.message);
+      }
+    } else {
+      setProducts(prev => prev.filter(p => p.id !== id));
+      alert("로컬 구성에서 삭제되었습니다.");
+    }
+  }
+
+  // Pre-fill form from unregistered warning trigger
+  function handleRegisterInstantly(rawUnregisteredName: string) {
+    // Strip prefixes to guess clean base name
+    const cleanedName = rawUnregisteredName.replace(/^[-]+/g, "").replace("[하프팩]","").replace("[세트]","").replace("스틱","").replace("미니큐브","").replace(" 3팩","").trim();
+    setNewSconeName(cleanedName);
+    
+    // Guess shape type
+    if (rawUnregisteredName.includes("큐브")) {
+      setNewSconeShape("미니큐브");
+      setNewSconeOption("[미니큐브]");
+      setNewSconeYield(2);
+      setNewSconeCream(0);
+    } else if (rawUnregisteredName.includes("스틱")) {
+      setNewSconeShape("스틱스콘");
+      setNewSconeOption("[스틱스콘]");
+      setNewSconeYield(9);
+      setNewSconeCream(0);
+    } else {
+      setNewSconeShape("삼각스콘");
+      setNewSconeOption("");
+      setNewSconeYield(8);
+      setNewSconeCream(170);
+    }
+    
+    // Scroll to form smoothly
+    crudSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
 
   // Drag and Drop implementation
@@ -455,8 +743,8 @@ export default function Home() {
       {/* Top Header Card */}
       <header className="page-1 page-2">
         <div className="brand">
-          <h1>스콘 생산량 관리 시스템 (Next.js Portal)</h1>
-          <p>엑셀 데이터 업로드 &amp; 실시간 생산공정 배분 솔루션</p>
+          <h1>스콘 생산량 관리 시스템 (Next.js &amp; Supabase DB)</h1>
+          <p>Supabase 마스터 연동 및 실시간 오븐 배정 포털</p>
         </div>
         <div className="btn-group no-print">
           <button 
@@ -468,6 +756,32 @@ export default function Home() {
           </button>
         </div>
       </header>
+
+      {/* Unregistered warning Banner */}
+      {unregisteredScones.length > 0 && (
+        <div className="alert-banner page-1 no-print" style={{ background: 'rgba(245, 158, 11, 0.1)', borderColor: 'var(--warning-color)' }}>
+          <div className="alert-content">
+            <span className="alert-icon" style={{ color: 'var(--warning-color)' }}>⚠️</span>
+            <div className="alert-text">
+              <h4 style={{ color: 'var(--text-primary)' }}>등록되지 않은 스콘이 감지되었습니다</h4>
+              <p style={{ color: 'var(--text-secondary)' }} className="mb-2">다음 스콘의 오븐번호 및 수율 설정이 존재하지 않습니다. 즉시 등록 단추를 눌러 마스터 목록에 추가해 주세요.</p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {unregisteredScones.map((s, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-[#1e2942] border border-white/5 px-3 py-1 rounded-lg text-xs">
+                    <span className="font-bold text-amber-500">{s}</span>
+                    <button 
+                      onClick={() => handleRegisterInstantly(s)}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2 py-0.5 rounded text-[10px] transition"
+                    >
+                      즉시 등록
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Drag-Drop Upload UI Panel */}
       <div className="io-panel no-print page-1">
@@ -499,7 +813,7 @@ export default function Home() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
           <span>엑셀 파일을 드래그 앤 드롭 하거나 클릭하여 업로드</span>
-          <small>Test1.xlsx 주문 현황 데이터 자동 해석</small>
+          <small>Test1.xlsx 주문 현황 데이터 자동 해석 및 DB 매핑</small>
           <input 
             type="file" 
             ref={fileInputRef} 
@@ -669,6 +983,7 @@ export default function Home() {
 
                 const r = computedData[item.name];
                 if (!r) return null;
+                const p = item.rawProduct as Product;
 
                 return (
                   <tr 
@@ -726,7 +1041,7 @@ export default function Home() {
                     </td>
                     <td className="hl-adjusted-pans">{r.hasCube ? r.cubeY : ''}</td>
                     <td className="hl-rem" style={{ borderRight: '2px solid var(--border-color)' }}>
-                      {r.hasCube ? (r.cubeYield === 4 ? r.cubeAB : r.cubeAA) : ''}
+                      {r.hasCube ? (p.pcs_per_pan === 4 ? r.cubeAB : r.cubeAA) : ''}
                     </td>
                     
                     {/* Stick */}
@@ -755,7 +1070,11 @@ export default function Home() {
                 <td className="no-print"></td>
                 <td id="sumCubeY">{Object.values(computedData).reduce((sum, r) => sum + r.cubeY, 0)}</td>
                 <td id="sumCubeAB" style={{ borderRight: '2px solid var(--border-color)' }}>
-                  {Object.values(computedData).reduce((sum, r) => sum + (r.cubeYield === 4 ? r.cubeAB : r.cubeAA), 0)}
+                  {Object.values(computedData).reduce((sum, r) => {
+                    const matchedProd = products.find(p => (p.product_name + (p.option_name || "")) === r.name);
+                    const pcs = matchedProd ? matchedProd.pcs_per_pan : 2;
+                    return sum + (pcs === 4 ? r.cubeAB : r.cubeAA);
+                  }, 0)}
                 </td>
                 
                 {/* Stick */}
@@ -926,6 +1245,161 @@ export default function Home() {
               })()}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Scone Master CRUD Management Section */}
+      <div className="page-1 no-print mt-6" ref={crudSectionRef}>
+        <div className="section-title">
+          <span>🛠️ 스콘 마스터 관리 (Supabase DB 연동)</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          {/* Register Form Card */}
+          <div className="card col-span-1">
+            <div className="card-title">스콘 마스터 등록</div>
+            <form onSubmit={handleCreateScone} className="flex flex-col gap-4">
+              <div>
+                <label className="text-xs opacity-75 block mb-1">스콘명 (필수)</label>
+                <input 
+                  type="text" 
+                  value={newSconeName}
+                  onChange={(e) => setNewSconeName(e.target.value)}
+                  placeholder="예: 말차초코칩스콘"
+                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs opacity-75 block mb-1">옵션명 (선택)</label>
+                <input 
+                  type="text" 
+                  value={newSconeOption}
+                  onChange={(e) => setNewSconeOption(e.target.value)}
+                  placeholder="예: [미니큐브], [스틱스콘] 또는 없음"
+                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs opacity-75 block mb-1">형태 지정</label>
+                <select 
+                  value={newSconeShape}
+                  onChange={(e) => {
+                    const val = e.target.value as any;
+                    setNewSconeShape(val);
+                    // Autofill typical yields
+                    if (val === '미니큐브') {
+                      setNewSconeYield(2);
+                      setNewSconeCream(0);
+                    } else if (val === '스틱스콘') {
+                      setNewSconeYield(9);
+                      setNewSconeCream(0);
+                    } else if (val === '삼각스콘') {
+                      setNewSconeYield(8);
+                      setNewSconeCream(170);
+                    }
+                  }}
+                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="삼각스콘">삼각스콘</option>
+                  <option value="미니큐브">미니큐브</option>
+                  <option value="스틱스콘">스틱스콘</option>
+                  <option value="기타">기타</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs opacity-75 block mb-1">오븐 번호</label>
+                  <input 
+                    type="number" 
+                    value={newSconeOven}
+                    onChange={(e) => setNewSconeOven(e.target.value)}
+                    placeholder="예: 4"
+                    className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs opacity-75 block mb-1">1판 생산량</label>
+                  <input 
+                    type="number" 
+                    value={newSconeYield}
+                    onChange={(e) => setNewSconeYield(parseInt(e.target.value, 10) || 0)}
+                    className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs opacity-75 block mb-1">1판당 생크림 소요량 (ml)</label>
+                <input 
+                  type="number" 
+                  value={newSconeCream}
+                  onChange={(e) => setNewSconeCream(parseInt(e.target.value, 10) || 0)}
+                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <button type="submit" className="btn btn-primary w-full mt-2 font-bold py-2.5">
+                💾 저장 및 마스터 반영
+              </button>
+            </form>
+          </div>
+
+          {/* Scone Master List Table Card */}
+          <div className="card col-span-2">
+            <div className="card-title">
+              <span>등록된 스콘 마스터 목록</span>
+              <span className="text-xs opacity-50 font-normal">총 {products.length}개 구성</span>
+            </div>
+            
+            <div className="table-container" style={{ maxHeight: '420px', overflowY: 'auto' }}>
+              <table>
+                <thead>
+                  <tr style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-surface-elevated)' }}>
+                    <th style={{ textAlign: 'left', paddingLeft: '16px' }}>스콘명</th>
+                    <th>옵션</th>
+                    <th>형태</th>
+                    <th>오븐</th>
+                    <th>수율</th>
+                    <th>생크림</th>
+                    <th>작업</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((p) => (
+                    <tr key={p.id}>
+                      <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: '500' }}>{p.product_name}</td>
+                      <td>{p.option_name || '-'}</td>
+                      <td><span className="text-xs opacity-75">{p.shape_type}</span></td>
+                      <td>
+                        {p.oven_number ? (
+                          <span className="badge-oven badge-tri">오븐 {p.oven_number}</span>
+                        ) : '-'}
+                      </td>
+                      <td>{p.pcs_per_pan}개</td>
+                      <td>{p.cream_per_pan}ml</td>
+                      <td>
+                        {!p.is_service ? (
+                          <button 
+                            onClick={() => handleDeleteScone(p.id, p.product_name + (p.option_name || ""))}
+                            className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-xs px-2 py-1 rounded transition"
+                          >
+                            삭제
+                          </button>
+                        ) : (
+                          <span className="text-xs opacity-50">고정</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
 

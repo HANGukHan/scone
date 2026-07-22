@@ -41,7 +41,15 @@ export const INITIAL_PRODUCTS = [
   { id: "34", product_name: "배리초코칩스콘", option_name: "[미니큐브]", shape_type: "미니큐브", oven_number: 8, pcs_per_pan: 2, cream_per_pan: 0, is_service: false, aliases: "-----[하프팩]배리초코칩미니큐브, 배리초코칩스콘[미니큐브]" },
   { id: "35", product_name: "[미니쉐이크]쑥인절미", option_name: null, shape_type: "미니큐브", oven_number: 2, pcs_per_pan: 4, cream_per_pan: 190, is_service: false, aliases: "-----[미니쉐이크]쑥인절미, [미니쉐이크]쑥인절미" },
   { id: "36", product_name: "[미니쉐이크]카카오파베", option_name: null, shape_type: "미니큐브", oven_number: 2, pcs_per_pan: 4, cream_per_pan: 180, is_service: false, aliases: "-----[미니쉐이크]카카오파베, [미니쉐이크]카카오파베" },
-  { id: "37", product_name: "서비스스콘", option_name: null, shape_type: "기타", oven_number: null, pcs_per_pan: 1, cream_per_pan: 0, is_service: true, aliases: "서비스스콘" }
+  { id: "37", product_name: "서비스스콘", option_name: null, shape_type: "기타", oven_number: null, pcs_per_pan: 1, cream_per_pan: 0, is_service: true, aliases: "서비스스콘" },
+  { id: "38", product_name: "GREEK YOGURT", option_name: null, shape_type: "기타", oven_number: null, pcs_per_pan: 1, cream_per_pan: 0, is_service: false, aliases: "-----GREEK YOGURT ::type=material" },
+  { id: "39", product_name: "피넛머드", option_name: "[스무스]", shape_type: "기타", oven_number: null, pcs_per_pan: 1, cream_per_pan: 0, is_service: false, aliases: "-------[Gourmet M]피넛머드 ::type=material" },
+  { id: "40", product_name: "피넛머드", option_name: "[크런치]", shape_type: "기타", oven_number: null, pcs_per_pan: 1, cream_per_pan: 0, is_service: false, aliases: "-------[Gourmet M]피넛머드 ::type=material" },
+  { id: "41", product_name: "대파분태", option_name: null, shape_type: "기타", oven_number: null, pcs_per_pan: 1, cream_per_pan: 0, is_service: false, aliases: "------대파분태 ::type=material" },
+  { id: "42", product_name: "이매진 머드", option_name: null, shape_type: "기타", oven_number: null, pcs_per_pan: 1, cream_per_pan: 0, is_service: false, aliases: "이매진 머드 ::type=material" },
+  { id: "43", product_name: "소분용 OPP 봉투 20매", option_name: "[간식용]", shape_type: "기타", oven_number: null, pcs_per_pan: 1, cream_per_pan: 0, is_service: false, aliases: "-------소분용 OPP 봉투 20매 ::type=material" },
+  { id: "44", product_name: "소분용 OPP 봉투 20매", option_name: "[식사용]", shape_type: "기타", oven_number: null, pcs_per_pan: 1, cream_per_pan: 0, is_service: false, aliases: "-------소분용 OPP 봉투 20매 ::type=material" },
+  { id: "45", product_name: "스타터팩", option_name: null, shape_type: "기타", oven_number: null, pcs_per_pan: 1, cream_per_pan: 0, is_service: false, aliases: "스타터팩 ::type=material" }
 ] as Product[];
 
 // Extended aliases metadata parsing and serialization
@@ -676,21 +684,23 @@ export function useSconeDashboard() {
     };
   }, [computedData, orders, products]);
 
-  // Sub-materials breakdown
+  // Dynamic sub-materials breakdown
   const subMaterials = useMemo(() => {
-    const starterPack = getOrderQty("스타터팩", null);
-    return {
-      matGreek: getOrderQty("-----GREEK YOGURT", null),
-      matSmooth: getOrderQty("-------[Gourmet M]피넛머드", "[스무스]"),
-      matCrunch: getOrderQty("-------[Gourmet M]피넛머드", "[크런치]"),
-      matGreen: getOrderQty("------대파분태", null),
-      matPave: getOrderQty("-----[미니쉐이크]카카오파베", null),
-      matInjeolmi: getOrderQty("-----[미니쉐이크]쑥인절미", null) + starterPack,
-      matStarter: starterPack,
-      matImagine: getOrderQty("이매진 머드", null),
-      matOpp: getOrderQty("-------소분용 OPP 봉투 20매", "[식사용]")
-    };
-  }, [orders]);
+    return products
+      .filter(p => parseExtendedAliases(p.aliases).productType === 'material')
+      .map(p => {
+        const qty = getOrderQtyByMatch(p);
+        return {
+          id: p.id,
+          name: p.product_name,
+          option: p.option_name,
+          shape: p.shape_type,
+          aliases: p.aliases || null,
+          qty: qty
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+  }, [products, decomposedOrders]);
 
   // Excel parsing handler
   function handleExcelFile(file: File) {

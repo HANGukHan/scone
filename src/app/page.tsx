@@ -118,6 +118,10 @@ export default function Home() {
   const [newSconeYield, setNewSconeYield] = useState<number>(8);
   const [newSconeCream, setNewSconeCream] = useState<number>(170);
   const [newSconeAliases, setNewSconeAliases] = useState<string>('');
+  const [newSconeProductType, setNewSconeProductType] = useState<'scone' | 'material'>('scone');
+  const [newSconeCompositionType, setNewSconeCompositionType] = useState<'general' | 'package'>('general');
+  const [newSconePackageComponents, setNewSconePackageComponents] = useState<string>('');
+  const [showPasswordChangeModal, setShowPasswordChangeModal] = useState<boolean>(false);
 
   // Scone Master CRUD Inline Editing States
   const [editingProdId, setEditingProdId] = useState<string | null>(null);
@@ -201,6 +205,62 @@ export default function Home() {
     return missingList;
   }, [products, orders]);
 
+  // Decomposed orders map resolving package/set 1:N item breakdowns
+  const decomposedOrders = useMemo(() => {
+    const result: Record<string, number> = { ...orders };
+
+    // Find all package products in database
+    const packageProds = products.filter(p => {
+      const parsed = parseExtendedAliases(p.aliases);
+      return parsed.sconeType === 'package';
+    });
+
+    packageProds.forEach(pkgProd => {
+      let pkgQty = 0;
+      const parsedPkg = parseExtendedAliases(pkgProd.aliases);
+      const pkgAliasList = parsedPkg.cleanAliases
+        ? parsedPkg.cleanAliases.split(',').map(a => normalize(a)).filter(Boolean)
+        : [];
+      
+      const pkgBaseNameNorm = normalize(pkgProd.product_name);
+      const pkgOptNameNorm = pkgProd.option_name ? normalize(pkgProd.option_name) : "";
+      const pkgDefaultKeyNorm = pkgBaseNameNorm + pkgOptNameNorm;
+
+      const pkgFallbackKeys = [pkgDefaultKeyNorm, pkgBaseNameNorm];
+      const pkgAllAliases = Array.from(new Set([
+        ...pkgAliasList,
+        ...pkgFallbackKeys.map(k => normalize(k))
+      ]));
+
+      // Sum quantities from original orders and delete them from result
+      Object.entries(orders).forEach(([orderKey, qty]) => {
+        const orderNorm = normalize(orderKey);
+        const matched = pkgAllAliases.some(alias => {
+          return orderNorm === alias || orderNorm.includes(alias) || alias.includes(orderNorm);
+        });
+        if (matched) {
+          pkgQty += qty;
+          delete result[orderKey]; // Subtract package order from normal scone orders
+        }
+      });
+
+      // Disassemble package quantity into its component items
+      if (pkgQty > 0 && parsedPkg.components.length > 0) {
+        parsedPkg.components.forEach(comp => {
+          const compProd = products.find(p => p.product_name === comp.name);
+          if (compProd) {
+            const compKey = compProd.product_name + (compProd.option_name || "");
+            result[compKey] = (result[compKey] || 0) + (comp.qty * pkgQty);
+          } else {
+            result[comp.name] = (result[comp.name] || 0) + (comp.qty * pkgQty);
+          }
+        });
+      }
+    });
+
+    return result;
+  }, [orders, products]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragIdxRef = useRef<number | null>(null);
   const crudSectionRef = useRef<HTMLDivElement>(null);
@@ -238,10 +298,14 @@ export default function Home() {
   useEffect(() => {
     if (products.length === 0) return;
 
-    // Find all unique base product names present in the active orders using the alias matching engine
+    // Find all unique base product names present in the active orders using the alias matching engine, excluding packages and materials
     const activeBaseNames = Array.from(new Set(
       products
         .filter(p => !p.is_service)
+        .filter(p => {
+          const parsed = parseExtendedAliases(p.aliases);
+          return parsed.productType !== 'material' && parsed.sconeType !== 'package';
+        })
         .filter(p => getOrderQtyByMatch(p) > 0)
         .map(p => p.product_name)
     ));
@@ -329,6 +393,70 @@ export default function Home() {
     return orders[key] || 0;
   }
 
+  // Interface and parser for extended type metadata embedded inside aliases column
+  interface ParsedAliases {
+    cleanAliases: string;
+    productType: 'scone' | 'material';
+    sconeType: 'general' | 'package';
+    components: Array<{ name: string; qty: number }>;
+  }
+
+  function parseExtendedAliases(aliasesStr: string | null | undefined): ParsedAliases {
+    const result: ParsedAliases = {
+      cleanAliases: '',
+      productType: 'scone',
+      sconeType: 'general',
+      components: []
+    };
+    if (!aliasesStr) return result;
+
+    const parts = aliasesStr.split('::');
+    result.cleanAliases = parts[0].trim();
+
+    for (let i = 1; i < parts.length; i++) {
+      const item = parts[i].trim();
+      if (item.startsWith('type=')) {
+        const typeVal = item.substring(5).trim();
+        if (typeVal === 'material') {
+          result.productType = 'material';
+        } else if (typeVal === 'package') {
+          result.sconeType = 'package';
+        }
+      } else if (item.startsWith('components=')) {
+        const compVal = item.substring(11).trim();
+        const compParts = compVal.split(',').map(c => c.trim()).filter(Boolean);
+        compParts.forEach(cp => {
+          const idx = cp.lastIndexOf(':');
+          if (idx !== -1) {
+            const name = cp.substring(0, idx).trim();
+            const qty = parseInt(cp.substring(idx + 1).trim(), 10) || 1;
+            result.components.push({ name, qty });
+          }
+        });
+      }
+    }
+    return result;
+  }
+
+  function serializeExtendedAliases(
+    cleanAliases: string, 
+    productType: 'scone' | 'material', 
+    sconeType: 'general' | 'package', 
+    components: Array<{ name: string; qty: number }>
+  ): string {
+    let result = cleanAliases.trim();
+    if (productType === 'material') {
+      result += ' ::type=material';
+    } else if (sconeType === 'package') {
+      result += ' ::type=package';
+      if (components.length > 0) {
+        const compStr = components.map(c => `${c.name}:${c.qty}`).join(',');
+        result += ` ::components=${compStr}`;
+      }
+    }
+    return result;
+  }
+
   // Helper to remove any unicode hidden spaces and trim
   function cleanString(str: string): string {
     if (!str) return '';
@@ -382,8 +510,8 @@ export default function Home() {
       ...fallbackKeys.map(k => normalize(k))
     ]));
 
-    // Check all orders in the orders map
-    Object.entries(orders).forEach(([orderKey, qty]) => {
+    // Check all orders in the decomposed orders map
+    Object.entries(decomposedOrders).forEach(([orderKey, qty]) => {
       const orderNorm = normalize(orderKey);
 
       // Shape Category Safety Check:
@@ -745,13 +873,45 @@ export default function Home() {
       return nameMatch && (optMatch || shapeMatch);
     });
 
-    // Merge aliases if existing
-    let mergedAliases = newSconeAliases.trim() || null;
+    // Merge aliases if existing and encode extended metadata
+    let mergedAliases = '';
+    const cleanNewAliases = cleanString(newSconeAliases);
+
     if (existing) {
-      const existingList = existing.aliases ? existing.aliases.split(',').map(a => a.trim()).filter(Boolean) : [];
-      const newList = newSconeAliases.trim() ? newSconeAliases.trim().split(',').map(a => a.trim()).filter(Boolean) : [];
-      const combined = Array.from(new Set([...existingList, ...newList])).join(', ');
-      mergedAliases = combined || null;
+      const parsedExisting = parseExtendedAliases(existing.aliases);
+      const existingList = parsedExisting.cleanAliases ? parsedExisting.cleanAliases.split(',').map(a => a.trim()).filter(Boolean) : [];
+      const newList = cleanNewAliases ? cleanNewAliases.split(',').map(a => a.trim()).filter(Boolean) : [];
+      const combinedAliases = Array.from(new Set([...existingList, ...newList])).join(', ');
+      
+      mergedAliases = serializeExtendedAliases(
+        combinedAliases,
+        newSconeProductType,
+        newSconeProductType === 'material' ? 'general' : newSconeCompositionType,
+        newSconeProductType === 'scone' && newSconeCompositionType === 'package' 
+          ? newSconePackageComponents.split(',').map(c => {
+              const idx = c.lastIndexOf(':');
+              return {
+                name: idx !== -1 ? c.substring(0, idx).trim() : c.trim(),
+                qty: idx !== -1 ? parseInt(c.substring(idx + 1).trim(), 10) || 1 : 1
+              };
+            }).filter(c => c.name)
+          : []
+      );
+    } else {
+      mergedAliases = serializeExtendedAliases(
+        cleanNewAliases,
+        newSconeProductType,
+        newSconeProductType === 'material' ? 'general' : newSconeCompositionType,
+        newSconeProductType === 'scone' && newSconeCompositionType === 'package' 
+          ? newSconePackageComponents.split(',').map(c => {
+              const idx = c.lastIndexOf(':');
+              return {
+                name: idx !== -1 ? c.substring(0, idx).trim() : c.trim(),
+                qty: idx !== -1 ? parseInt(c.substring(idx + 1).trim(), 10) || 1 : 1
+              };
+            }).filter(c => c.name)
+          : []
+      );
     }
 
     const targetShape = existing ? existing.shape_type : newSconeShape;
@@ -831,6 +991,9 @@ export default function Home() {
     setNewSconeOption('');
     setNewSconeOven('');
     setNewSconeAliases('');
+    setNewSconeProductType('scone');
+    setNewSconeCompositionType('general');
+    setNewSconePackageComponents('');
     
   }
 
@@ -920,7 +1083,16 @@ export default function Home() {
     const prod = products.find(p => p.id === id);
     if (!prod) return;
 
-    const updatedAliases = cleanString(editingAliasesVal) || null;
+    // Parse existing metadata to preserve it
+    const parsedExisting = parseExtendedAliases(prod.aliases);
+    const updatedAliasesClean = cleanString(editingAliasesVal);
+    
+    const updatedAliases = serializeExtendedAliases(
+      updatedAliasesClean,
+      parsedExisting.productType,
+      parsedExisting.sconeType,
+      parsedExisting.components
+    );
 
     if (hasValidSupabaseConfig) {
       try {
@@ -1017,6 +1189,7 @@ export default function Home() {
     setCurrentPasswordInput('');
     setNewPasswordInput('');
     setConfirmPasswordInput('');
+    setShowPasswordChangeModal(false);
   }
 
   async function handleDeleteScone(id: string, name: string) {
@@ -1583,6 +1756,35 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          {/* Packaging materials card */}
+          <div className="card">
+            <div className="card-title">부자재 / 포장재 주문 집계</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', maxHeight: '180px', paddingRight: '4px' }}>
+              {(() => {
+                const materialProds = products.filter(p => {
+                  const parsed = parseExtendedAliases(p.aliases);
+                  return parsed.productType === 'material';
+                });
+                
+                const activeMaterials = materialProds.filter(p => getOrderQtyByMatch(p) > 0);
+                
+                if (activeMaterials.length === 0) {
+                  return <div className="text-xs opacity-50 text-center py-8">주문된 부자재/포장재 없음</div>;
+                }
+                
+                return activeMaterials.map(p => {
+                  const qty = getOrderQtyByMatch(p);
+                  return (
+                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                      <span className="text-xs opacity-75">{p.product_name} {p.option_name || ''}</span>
+                      <strong className="text-xs font-bold text-indigo-400">{qty} 개</strong>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1725,6 +1927,86 @@ export default function Home() {
         </div>
       )}
 
+      {/* Admin Password Change Modal */}
+      {showPasswordChangeModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.8)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 10001
+        }}>
+          <div className="bg-[#0f172a] border border-white/10 rounded-2xl p-6 w-full max-w-sm relative shadow-2xl">
+            <button 
+              onClick={() => {
+                setShowPasswordChangeModal(false);
+                setCurrentPasswordInput('');
+                setNewPasswordInput('');
+                setConfirmPasswordInput('');
+              }}
+              style={{
+                position: 'absolute',
+                top: '15px',
+                right: '15px',
+                background: 'transparent',
+                border: 'none',
+                color: '#fff',
+                fontSize: '16px',
+                cursor: 'pointer'
+              }}
+              className="opacity-70 hover:opacity-100 transition"
+            >
+              ✕
+            </button>
+            <div className="text-lg font-bold text-center mb-4">🔑 관리자 비밀번호 변경</div>
+            <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
+              <div>
+                <label className="text-xs opacity-75 block mb-1">현재 비밀번호</label>
+                <input 
+                  type="password" 
+                  value={currentPasswordInput}
+                  onChange={(e) => setCurrentPasswordInput(e.target.value)}
+                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                  placeholder="현재 비밀번호 입력"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs opacity-75 block mb-1">새 비밀번호</label>
+                <input 
+                  type="password" 
+                  value={newPasswordInput}
+                  onChange={(e) => setNewPasswordInput(e.target.value)}
+                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                  placeholder="새 비밀번호 입력"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs opacity-75 block mb-1">새 비밀번호 확인</label>
+                <input 
+                  type="password" 
+                  value={confirmPasswordInput}
+                  onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                  className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                  placeholder="새 비밀번호 확인"
+                  required
+                />
+              </div>
+              <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition w-full">
+                비밀번호 변경 적용
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Scone Master CRUD Management Modal */}
       {showMasterModal && (
         <div style={{
@@ -1794,32 +2076,100 @@ export default function Home() {
                         className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
                       />
                     </div>
-                    <div>
-                      <label className="text-xs opacity-75 block mb-1">형태 지정</label>
-                      <select 
-                        value={newSconeShape}
-                        onChange={(e) => {
-                          const val = e.target.value as any;
-                          setNewSconeShape(val);
-                          if (val === '미니큐브') {
-                            setNewSconeYield(2);
-                            setNewSconeCream(0);
-                          } else if (val === '스틱스콘') {
-                            setNewSconeYield(9);
-                            setNewSconeCream(0);
-                          } else if (val === '삼각스콘') {
-                            setNewSconeYield(8);
-                            setNewSconeCream(170);
-                          }
-                        }}
-                        className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                      >
-                        <option value="삼각스콘">삼각스콘</option>
-                        <option value="미니큐브">미니큐브</option>
-                        <option value="스틱스콘">스틱스콘</option>
-                        <option value="기타">기타</option>
-                      </select>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs opacity-75 block mb-1">품목 분류</label>
+                        <select 
+                          value={newSconeProductType}
+                          onChange={(e) => {
+                            const val = e.target.value as any;
+                            setNewSconeProductType(val);
+                            if (val === 'material') {
+                              setNewSconeCompositionType('general');
+                              setNewSconeShape('기타');
+                              setNewSconeYield(1);
+                              setNewSconeCream(0);
+                              setNewSconeOven('');
+                            } else {
+                              setNewSconeShape('삼각스콘');
+                              setNewSconeYield(8);
+                              setNewSconeCream(170);
+                            }
+                          }}
+                          className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                        >
+                          <option value="scone">스콘 생산품</option>
+                          <option value="material">부자재/포장재</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs opacity-75 block mb-1">구성 형태</label>
+                        <select 
+                          value={newSconeCompositionType}
+                          onChange={(e) => {
+                            const val = e.target.value as any;
+                            setNewSconeCompositionType(val);
+                            if (val === 'package') {
+                              setNewSconeShape('기타');
+                              setNewSconeYield(1);
+                              setNewSconeCream(0);
+                              setNewSconeOven('');
+                            } else {
+                              setNewSconeShape('삼각스콘');
+                              setNewSconeYield(8);
+                              setNewSconeCream(170);
+                            }
+                          }}
+                          className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                          disabled={newSconeProductType === 'material'}
+                        >
+                          <option value="general">일반 스콘</option>
+                          <option value="package">패키지/세트 상품</option>
+                        </select>
+                      </div>
                     </div>
+
+                    {newSconeProductType === 'scone' && newSconeCompositionType === 'package' && (
+                      <div>
+                        <label className="text-xs opacity-75 block mb-1">패키지 구성 (품명:수량, 쉼표 구분)</label>
+                        <input 
+                          type="text" 
+                          value={newSconePackageComponents}
+                          onChange={(e) => setNewSconePackageComponents(e.target.value)}
+                          placeholder="예: 말차초코칩스콘:1, 츄러스콘:2"
+                          className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                    )}
+
+                    {newSconeCompositionType === 'general' && newSconeProductType === 'scone' && (
+                      <div>
+                        <label className="text-xs opacity-75 block mb-1">형태 지정</label>
+                        <select 
+                          value={newSconeShape}
+                          onChange={(e) => {
+                            const val = e.target.value as any;
+                            setNewSconeShape(val);
+                            if (val === '미니큐브') {
+                              setNewSconeYield(2);
+                              setNewSconeCream(0);
+                            } else if (val === '스틱스콘') {
+                              setNewSconeYield(9);
+                              setNewSconeCream(0);
+                            } else if (val === '삼각스콘') {
+                              setNewSconeYield(8);
+                              setNewSconeCream(170);
+                            }
+                          }}
+                          className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                        >
+                          <option value="삼각스콘">삼각스콘</option>
+                          <option value="미니큐브">미니큐브</option>
+                          <option value="스틱스콘">스틱스콘</option>
+                          <option value="기타">기타</option>
+                        </select>
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-xs opacity-75 block mb-1">오븐 번호</label>
@@ -1865,46 +2215,6 @@ export default function Home() {
                     </button>
                   </form>
                 </div>
-                
-                {/* Change Password Card */}
-                <div className="card mt-4">
-                  <div className="card-title">비밀번호 변경</div>
-                  <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
-                    <div>
-                      <label className="text-xs opacity-75 block mb-1">현재 비밀번호</label>
-                      <input 
-                        type="password" 
-                        value={currentPasswordInput}
-                        onChange={(e) => setCurrentPasswordInput(e.target.value)}
-                        className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                        placeholder="현재 비밀번호 입력"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs opacity-75 block mb-1">새 비밀번호</label>
-                      <input 
-                        type="password" 
-                        value={newPasswordInput}
-                        onChange={(e) => setNewPasswordInput(e.target.value)}
-                        className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                        placeholder="새 비밀번호 입력"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs opacity-75 block mb-1">새 비밀번호 확인</label>
-                      <input 
-                        type="password" 
-                        value={confirmPasswordInput}
-                        onChange={(e) => setConfirmPasswordInput(e.target.value)}
-                        className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                        placeholder="새 비밀번호 확인"
-                      />
-                    </div>
-                    <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition w-full">
-                      비밀번호 변경 적용
-                    </button>
-                  </form>
-                </div>
               </div>
 
               {/* Master List Table */}
@@ -1915,6 +2225,12 @@ export default function Home() {
                     <span className="text-xs opacity-50 font-normal ml-2">총 {products.length}개 구성</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
+                    <button 
+                      onClick={() => setShowPasswordChangeModal(true)}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"
+                    >
+                      🔑 비밀번호 변경
+                    </button>
                     <button 
                       onClick={handleRestoreFromBackup}
                       className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"
@@ -1949,7 +2265,30 @@ export default function Home() {
                         <tr key={p.id}>
                           <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: '500' }}>{p.product_name}</td>
                           <td>{p.option_name || '-'}</td>
-                          <td><span className="text-xs opacity-75">{p.shape_type}</span></td>
+                           <td>
+                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
+                               <span className="text-xs opacity-75">{p.shape_type}</span>
+                               {(() => {
+                                 const parsed = parseExtendedAliases(p.aliases);
+                                 if (parsed.productType === 'material') {
+                                   return <span className="text-[9px] px-1 py-0.5 bg-amber-500/10 text-amber-500 rounded border border-amber-500/20" style={{ display: 'inline-block', marginTop: '2px' }}>부자재/포장재</span>;
+                                 }
+                                 if (parsed.sconeType === 'package') {
+                                   return (
+                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', marginTop: '2px' }}>
+                                       <span className="text-[9px] px-1 py-0.5 bg-indigo-500/10 text-indigo-400 rounded border border-indigo-500/20" style={{ display: 'inline-block' }}>세트/패키지</span>
+                                       {parsed.components.length > 0 && (
+                                         <span className="text-[9px] opacity-60 text-center" style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={parsed.components.map(c => `${c.name} x${c.qty}`).join(', ')}>
+                                           {parsed.components.map(c => `${c.name}x${c.qty}`).join(', ')}
+                                         </span>
+                                       )}
+                                     </div>
+                                   );
+                                 }
+                                 return null;
+                               })()}
+                             </div>
+                           </td>
                           <td>
                             {editingOvenProdId === p.id ? (
                               <div style={{ display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center' }}>
@@ -2020,8 +2359,10 @@ export default function Home() {
                               </div>
                             ) : (
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', width: '100%' }}>
-                                {p.aliases ? (
-                                  p.aliases.split(',').map((alias, idx) => {
+                                {(() => {
+                                  const parsed = parseExtendedAliases(p.aliases);
+                                  if (!parsed.cleanAliases) return <span className="text-xs opacity-50">-</span>;
+                                  return parsed.cleanAliases.split(',').map((alias, idx) => {
                                     const cleanAlias = cleanString(alias);
                                     if (!cleanAlias) return null;
                                     return (
@@ -2033,14 +2374,12 @@ export default function Home() {
                                         {cleanAlias}
                                       </span>
                                     );
-                                  })
-                                ) : (
-                                  <span className="text-xs opacity-50">-</span>
-                                )}
+                                  });
+                                })()}
                                 <button 
                                   onClick={() => {
                                     setEditingProdId(p.id);
-                                    setEditingAliasesVal(p.aliases || '');
+                                    setEditingAliasesVal(parseExtendedAliases(p.aliases).cleanAliases);
                                   }}
                                   className="text-indigo-400 hover:text-indigo-300 text-[10px] underline ml-auto cursor-pointer"
                                 >

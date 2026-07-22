@@ -222,6 +222,10 @@ export function useSconeDashboard() {
   const [passwordInput, setPasswordInput] = useState<string>('');
   const [pendingInstName, setPendingInstName] = useState<string | null>(null);
   
+  // Click-to-map mapping selection state
+  const [mappingSelections, setMappingSelections] = useState<Record<string, string>>({});
+  const [showRegisterNewModal, setShowRegisterNewModal] = useState<boolean>(false);
+  
   // Password change states
   const [currentPasswordInput, setCurrentPasswordInput] = useState<string>('');
   const [newPasswordInput, setNewPasswordInput] = useState<string>('');
@@ -1023,6 +1027,7 @@ export function useSconeDashboard() {
     setNewSconeProductType('scone');
     setNewSconeCompositionType('general');
     setNewSconePackageComponents('');
+    setShowRegisterNewModal(false);
   }
 
   async function handleClearAllDBData() {
@@ -1268,6 +1273,83 @@ export function useSconeDashboard() {
     }
   }
 
+  function handleSelectMappingTarget(unmappedName: string, productId: string) {
+    setMappingSelections(prev => ({ ...prev, [unmappedName]: productId }));
+  }
+
+  async function handleConfirmMapping(unmappedName: string) {
+    const targetId = mappingSelections[unmappedName];
+    if (!targetId) return;
+
+    const targetProduct = products.find(p => p.id === targetId);
+    if (!targetProduct) return;
+
+    const parsed = parseExtendedAliases(targetProduct.aliases);
+    const currentCleanAliases = parsed.cleanAliases;
+    const existingList = currentCleanAliases ? currentCleanAliases.split(',').map(a => a.trim()).filter(Boolean) : [];
+    
+    if (existingList.includes(unmappedName)) {
+      alert("이미 해당 키워드가 존재합니다.");
+      return;
+    }
+
+    const newList = [...existingList, unmappedName];
+    const combinedAliases = newList.join(', ');
+
+    const serialized = serializeExtendedAliases(
+      combinedAliases,
+      parsed.productType,
+      parsed.sconeType,
+      parsed.components
+    );
+
+    const updatedProduct = {
+      ...targetProduct,
+      aliases: serialized
+    };
+
+    if (hasValidSupabaseConfig) {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .upsert([updatedProduct])
+          .select();
+        
+        if (error) throw error;
+        if (data) {
+          setProducts(prev => prev.map(p => p.id === targetId ? data[0] : p));
+          alert(`[${unmappedName}] 상품이 [${targetProduct.product_name}]에 성공적으로 매칭되었습니다!`);
+        }
+      } catch (err: any) {
+        alert("DB 매칭 실패: " + err.message);
+      }
+    } else {
+      setProducts(prev => prev.map(p => p.id === targetId ? updatedProduct : p));
+      alert(`로컬에서 [${unmappedName}] 상품이 [${targetProduct.product_name}]에 매칭되었습니다! (Supabase 미연동)`);
+    }
+
+    setMappingSelections(prev => {
+      const copy = { ...prev };
+      delete copy[unmappedName];
+      return copy;
+    });
+  }
+
+  function handleOpenRegisterNewModal(unmappedName: string) {
+    setNewSconeName(unmappedName);
+    setNewSconeOption('');
+    setNewSconeShape('삼각스콘');
+    setNewSconeOven('');
+    setNewSconeYield(8);
+    setNewSconeCream(170);
+    setNewSconeAliases(unmappedName);
+    setNewSconeProductType('scone');
+    setNewSconeCompositionType('general');
+    setNewSconePackageComponents('');
+    
+    setShowRegisterNewModal(true);
+  }
+
   async function handleDeleteScone(id: string, name: string) {
     if (!confirm(`[${name}] 스콘 구성을 마스터 리스트에서 삭제하시겠습니까?`)) return;
     
@@ -1349,6 +1431,9 @@ export function useSconeDashboard() {
     setPasswordInput,
     pendingInstName,
     setPendingInstName,
+    mappingSelections,
+    showRegisterNewModal,
+    setShowRegisterNewModal,
 
     // Pass change form states
     currentPasswordInput,
@@ -1389,6 +1474,9 @@ export function useSconeDashboard() {
     handlePasswordVerify,
     handleChangePassword,
     getOrderQtyByMatch,
-    handleLoadProductToForm
+    handleLoadProductToForm,
+    handleSelectMappingTarget,
+    handleConfirmMapping,
+    handleOpenRegisterNewModal
   };
 }

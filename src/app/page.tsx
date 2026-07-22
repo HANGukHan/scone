@@ -8,6 +8,7 @@ import { SconeMasterModal } from '../components/SconeMasterModal';
 import { ProductionTable } from '../components/ProductionTable';
 import { OvenBatchTable } from '../components/OvenBatchTable';
 import { FooterMetrics } from '../components/FooterMetrics';
+import { NewProductRegisterModal } from '../components/NewProductRegisterModal';
 
 export default function Home() {
   const {
@@ -84,7 +85,13 @@ export default function Home() {
     handlePasswordVerify,
     handleChangePassword,
     getOrderQtyByMatch,
-    handleLoadProductToForm
+    handleLoadProductToForm,
+    mappingSelections,
+    showRegisterNewModal,
+    setShowRegisterNewModal,
+    handleSelectMappingTarget,
+    handleConfirmMapping,
+    handleOpenRegisterNewModal
   } = useSconeDashboard();
 
   useEffect(() => {
@@ -145,22 +152,55 @@ export default function Home() {
 
       {/* Unregistered warning Banner */}
       {unregisteredScones.length > 0 && (
-        <div className="alert-banner page-1 no-print" style={{ background: 'rgba(245, 158, 11, 0.1)', borderColor: 'var(--warning-color)' }}>
-          <div className="alert-content">
-            <span className="alert-icon" style={{ color: 'var(--warning-color)' }}>⚠️</span>
-            <div className="alert-text">
-              <h4 style={{ color: 'var(--text-primary)' }}>등록되지 않은 스콘이 감지되었습니다</h4>
-              <p style={{ color: 'var(--text-secondary)' }} className="mb-2">다음 스콘의 오븐번호 및 수율 설정이 존재하지 않습니다. 즉시 등록 단추를 눌러 마스터 목록에 추가해 주세요.</p>
-              <div className="flex flex-wrap gap-2 mt-2">
+        <div className="alert-banner page-1 no-print" style={{ background: 'rgba(245, 158, 11, 0.1)', borderColor: 'var(--warning-color)', padding: '16px' }}>
+          <div className="alert-content" style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+            <span className="alert-icon" style={{ color: 'var(--warning-color)', fontSize: '20px', marginTop: '2px' }}>⚠️</span>
+            <div className="alert-text" style={{ flex: 1 }}>
+              <h4 style={{ color: 'var(--text-primary)', margin: '0 0 8px 0', fontSize: '15px' }}>등록되지 않은 스콘이 감지되었습니다</h4>
+              <p style={{ color: 'var(--text-secondary)', margin: '0 0 12px 0', fontSize: '13px' }}>
+                이지어드민 정산 데이터 내 미등록 품목을 발견했습니다. 아래 목록에서 매칭할 기존 DB 상품을 선택하거나, 신규 상품으로 등록하세요.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {unregisteredScones.map((s, i) => (
-                  <div key={i} className="flex items-center gap-2 bg-[#1e2942] border border-white/5 px-3 py-1 rounded-lg text-xs">
-                    <span className="font-bold text-amber-500">{s}</span>
-                    <button 
-                      onClick={() => handleRegisterInstantly(s)}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2 py-0.5 rounded text-[10px] transition cursor-pointer"
-                    >
-                      즉시 등록
-                    </button>
+                  <div key={i} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-color)', padding: '8px 12px', borderRadius: '10px' }}>
+                    <span className="font-bold text-amber-500" style={{ fontSize: '13px', minWidth: '220px' }}>{s}</span>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <select 
+                        value={mappingSelections[s] || ""}
+                        onChange={(e) => handleSelectMappingTarget(s, e.target.value)}
+                        className="bg-[#1e2942] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-[#f8fafc] focus:outline-none focus:border-indigo-500"
+                        style={{ minWidth: '240px' }}
+                      >
+                        <option value="">-- 매칭할 DB 마스터 상품 선택 --</option>
+                        {(() => {
+                          const sortedProducts = [...products].sort((a, b) => {
+                            const nameA = a.product_name.localeCompare(b.product_name, 'ko');
+                            if (nameA !== 0) return nameA;
+                            return (a.option_name || '').localeCompare(b.option_name || '', 'ko');
+                          });
+                          return sortedProducts.map(p => {
+                            const label = `${p.product_name}${p.option_name ? ' ' + p.option_name : ''} (${p.shape_type})`;
+                            return <option key={p.id} value={p.id}>{label}</option>;
+                          });
+                        })()}
+                      </select>
+
+                      <button 
+                        onClick={() => handleConfirmMapping(s)}
+                        disabled={!mappingSelections[s]}
+                        className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"
+                      >
+                        🔗 매칭 확정
+                      </button>
+
+                      <button 
+                        onClick={() => handleOpenRegisterNewModal(s)}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"
+                      >
+                        ➕ 신규 상품으로 등록
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -331,6 +371,34 @@ export default function Home() {
         setEditingOvenVal={setEditingOvenVal}
         setShowPasswordChangeModal={setShowPasswordChangeModal}
         handleLoadProductToForm={handleLoadProductToForm}
+        handleOpenRegisterNewModal={handleOpenRegisterNewModal}
+      />
+
+      {/* New Product Register Modal */}
+      <NewProductRegisterModal 
+        show={showRegisterNewModal}
+        onClose={() => setShowRegisterNewModal(false)}
+        onSubmit={handleCreateScone}
+        newSconeName={newSconeName}
+        setNewSconeName={setNewSconeName}
+        newSconeOption={newSconeOption}
+        setNewSconeOption={setNewSconeOption}
+        newSconeShape={newSconeShape}
+        setNewSconeShape={setNewSconeShape}
+        newSconeOven={newSconeOven}
+        setNewSconeOven={setNewSconeOven}
+        newSconeYield={newSconeYield}
+        setNewSconeYield={setNewSconeYield}
+        newSconeCream={newSconeCream}
+        setNewSconeCream={setNewSconeCream}
+        newSconeAliases={newSconeAliases}
+        setNewSconeAliases={setNewSconeAliases}
+        newSconeProductType={newSconeProductType}
+        setNewSconeProductType={setNewSconeProductType}
+        newSconeCompositionType={newSconeCompositionType}
+        setNewSconeCompositionType={setNewSconeCompositionType}
+        newSconePackageComponents={newSconePackageComponents}
+        setNewSconePackageComponents={setNewSconePackageComponents}
       />
 
     </div>

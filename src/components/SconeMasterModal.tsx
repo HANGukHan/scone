@@ -42,6 +42,7 @@ interface SconeMasterModalProps {
   setEditingOvenVal: (val: string) => void;
   setShowPasswordChangeModal: (val: boolean) => void;
   handleLoadProductToForm: (p: Product) => void;
+  handleOpenRegisterNewModal: (unmappedName: string) => void;
 }
 
 export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
@@ -83,7 +84,8 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
   editingOvenVal,
   setEditingOvenVal,
   setShowPasswordChangeModal,
-  handleLoadProductToForm
+  handleLoadProductToForm,
+  handleOpenRegisterNewModal
 }) => {
   if (!show) return null;
 
@@ -129,181 +131,21 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
           <span>🛠️ 스콘 마스터 관리 (Supabase DB 연동)</span>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ flex: 1, overflow: 'hidden' }}>
-          <div className="col-span-1" style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', paddingRight: '4px' }}>
-            {/* Register Form Card */}
-            <div className="card">
-              <div className="card-title">스콘 마스터 등록</div>
-              <form onSubmit={handleCreateScone} className="flex flex-col gap-4">
-                <div>
-                  <label className="text-xs opacity-75 block mb-1">스콘명 (필수)</label>
-                  <input 
-                    type="text" 
-                    value={newSconeName}
-                    onChange={(e) => setNewSconeName(e.target.value)}
-                    placeholder="예: 말차초코칩스콘"
-                    className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs opacity-75 block mb-1">옵션명 (선택)</label>
-                  <input 
-                    type="text" 
-                    value={newSconeOption}
-                    onChange={(e) => setNewSconeOption(e.target.value)}
-                    placeholder="예: [미니큐브], [스틱스콘] 또는 없음"
-                    className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs opacity-75 block mb-1">품목 분류</label>
-                    <select 
-                      value={newSconeProductType}
-                      onChange={(e) => {
-                        const val = e.target.value as any;
-                        setNewSconeProductType(val);
-                        if (val === 'material') {
-                          setNewSconeCompositionType('general');
-                          setNewSconeShape('기타');
-                          setNewSconeYield(1);
-                          setNewSconeCream(0);
-                          setNewSconeOven('');
-                        } else {
-                          setNewSconeShape('삼각스콘');
-                          setNewSconeYield(8);
-                          setNewSconeCream(170);
-                        }
-                      }}
-                      className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                    >
-                      <option value="scone">스콘 생산품</option>
-                      <option value="material">부자재/포장재</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs opacity-75 block mb-1">구성 형태</label>
-                    <select 
-                      value={newSconeCompositionType}
-                      onChange={(e) => {
-                        const val = e.target.value as any;
-                        setNewSconeCompositionType(val);
-                        if (val === 'package') {
-                          setNewSconeShape('기타');
-                          setNewSconeYield(1);
-                          setNewSconeCream(0);
-                          setNewSconeOven('');
-                        } else {
-                          setNewSconeShape('삼각스콘');
-                          setNewSconeYield(8);
-                          setNewSconeCream(170);
-                        }
-                      }}
-                      className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                      disabled={newSconeProductType === 'material'}
-                    >
-                      <option value="general">일반 스콘</option>
-                      <option value="package">패키지/세트 상품</option>
-                    </select>
-                  </div>
-                </div>
-
-                {newSconeProductType === 'scone' && newSconeCompositionType === 'package' && (
-                  <div>
-                    <label className="text-xs opacity-75 block mb-1">패키지 구성 (품명:수량, 쉼표 구분)</label>
-                    <input 
-                      type="text" 
-                      value={newSconePackageComponents}
-                      onChange={(e) => setNewSconePackageComponents(e.target.value)}
-                      placeholder="예: 말차초코칩스콘:1, 츄러스콘:2"
-                      className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                )}
-
-                {newSconeCompositionType === 'general' && newSconeProductType === 'scone' && (
-                  <div>
-                    <label className="text-xs opacity-75 block mb-1">형태 지정</label>
-                    <select 
-                      value={newSconeShape}
-                      onChange={(e) => {
-                        const val = e.target.value as any;
-                        setNewSconeShape(val);
-                        if (val === '미니큐브') {
-                          setNewSconeYield(2);
-                          setNewSconeCream(0);
-                        } else if (val === '스틱스콘') {
-                          setNewSconeYield(9);
-                          setNewSconeCream(0);
-                        } else if (val === '삼각스콘') {
-                          setNewSconeYield(8);
-                          setNewSconeCream(170);
-                        }
-                      }}
-                      className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                    >
-                      <option value="삼각스콘">삼각스콘</option>
-                      <option value="미니큐브">미니큐브</option>
-                      <option value="스틱스콘">스틱스콘</option>
-                      <option value="기타">기타</option>
-                    </select>
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs opacity-75 block mb-1">오븐 번호</label>
-                    <input 
-                      type="number" 
-                      value={newSconeOven}
-                      onChange={(e) => setNewSconeOven(e.target.value)}
-                      placeholder="예: 4"
-                      className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs opacity-75 block mb-1">1판 생산량</label>
-                    <input 
-                      type="number" 
-                      value={newSconeYield}
-                      onChange={(e) => setNewSconeYield(parseInt(e.target.value, 10) || 0)}
-                      className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs opacity-75 block mb-1">1판당 생크림 소요량 (ml)</label>
-                  <input 
-                    type="number" 
-                    value={newSconeCream}
-                    onChange={(e) => setNewSconeCream(parseInt(e.target.value, 10) || 0)}
-                    className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs opacity-75 block mb-1">엑셀 매칭 상품명/키워드 (쉼표 구분)</label>
-                  <input 
-                    type="text" 
-                    value={newSconeAliases}
-                    onChange={(e) => setNewSconeAliases(e.target.value)}
-                    placeholder="예: -----[하프팩]통밀츄러미니큐브, 츄러스콘[미니큐브]"
-                    className="w-full bg-[#1e2942] border border-white/10 rounded-lg p-2 text-sm text-[#f8fafc] focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <button type="submit" className="btn btn-primary w-full mt-2 font-bold py-2.5">
-                  💾 저장 및 마스터 반영
-                </button>
-              </form>
-            </div>
-          </div>
-
+        <div className="grid grid-cols-1 gap-6" style={{ flex: 1, overflow: 'hidden' }}>
           {/* Master List Table */}
-          <div className="card col-span-2" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+          <div className="card col-span-1" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
             <div className="card-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <span>등록된 스콘 마스터 목록</span>
                 <span className="text-xs opacity-50 font-normal ml-2">총 {products.length}개 구성</span>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  onClick={() => handleOpenRegisterNewModal("")}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"
+                >
+                  ➕ 신규 상품 등록
+                </button>
                 <button 
                   onClick={() => setShowPasswordChangeModal(true)}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"

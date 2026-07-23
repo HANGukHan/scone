@@ -10,6 +10,7 @@ export interface Product {
   aliases?: string | null;
   oven_batch_size?: number;
   sort_order?: number;
+  created_at?: string;
 }
 
 export interface OrderWithProduct {

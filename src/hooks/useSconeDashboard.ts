@@ -1227,7 +1227,10 @@ export function useSconeDashboard() {
     const updatedScones = cleanProducts.map(p => {
       const parsed = parseExtendedAliases(p.aliases);
       if (parsed.productType === 'material' || parsed.sconeType === 'package' || p.is_service) {
-        return p;
+        return {
+          ...p,
+          created_at: p.created_at || new Date().toISOString()
+        };
       }
       
       const idx = productSequence.findIndex(item => item.type === 'product' && item.name === p.product_name);
@@ -1244,7 +1247,8 @@ export function useSconeDashboard() {
       
       return {
         ...p,
-        aliases: serialized
+        aliases: serialized,
+        created_at: p.created_at || new Date().toISOString()
       };
     });
 
@@ -1254,6 +1258,7 @@ export function useSconeDashboard() {
         const spacerId = item.id;
         const existing = products.find(p => p.product_name === 'SYSTEM_SPACER' && p.option_name === spacerId);
         const id = existing ? existing.id : generateUUID();
+        const createdAt = existing?.created_at || new Date().toISOString();
         
         newSpacerProducts.push({
           id,
@@ -1263,7 +1268,8 @@ export function useSconeDashboard() {
           pcs_per_pan: 1,
           is_service: false,
           cream_per_pan: 0,
-          aliases: `${item.name}::sort_order=${index + 1}`
+          aliases: `${item.name}::sort_order=${index + 1}`,
+          created_at: createdAt
         } as Product);
       }
     });

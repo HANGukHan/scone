@@ -47,7 +47,7 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
       <table id="productionTable">
         <thead>
           <tr style={{ background: 'var(--bg-surface-elevated)' }}>
-            <th className="no-print col-drag-handle" style={{ width: '56px', padding: '0 4px', textAlign: 'center' }}>
+            <th className="no-print col-drag-handle" style={{ width: '68px', minWidth: '68px', padding: '0 4px', textAlign: 'center' }}>
               <button 
                 onClick={addSpacer} 
                 className="no-print text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10 text-[10px] h-6 px-1.5 rounded border border-emerald-500/20 font-bold transition"
@@ -91,7 +91,7 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
                   onDragOver={handleDragOver}
                   onDrop={() => handleDrop(index)}
                 >
-                  <td className="no-print col-drag-handle" style={{ cursor: 'grab', textAlign: 'center' }}>☰</td>
+                  <td className="no-print col-drag-handle" style={{ cursor: 'grab', textAlign: 'center', width: '68px', minWidth: '68px' }}>☰</td>
                   <td colSpan={3} style={{ textAlign: 'left', paddingLeft: '16px' }}>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '100%' }}>
                       <input 
@@ -143,7 +143,7 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
                 onDragOver={handleDragOver}
                 onDrop={() => handleDrop(index)}
               >
-                <td className="no-print col-drag-handle" style={{ cursor: 'grab', textAlign: 'center' }}>☰</td>
+                <td className="no-print col-drag-handle" style={{ cursor: 'grab', textAlign: 'center', width: '68px', minWidth: '68px' }}>☰</td>
                 <td className="hl-name">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     <span>{r.name}</span>
@@ -232,7 +232,7 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
 
           {/* Table Totals Row */}
           <tr style={{ background: 'rgba(255, 255, 255, 0.03)', fontWeight: 'bold' }}>
-            <td className="no-print col-drag-handle"></td>
+            <td className="no-print col-drag-handle" style={{ width: '68px', minWidth: '68px' }}></td>
             <td className="hl-name" style={{ textAlign: 'center', borderRight: '2px solid var(--border-color)' }}>합계</td>
             <td></td>
             <td></td>

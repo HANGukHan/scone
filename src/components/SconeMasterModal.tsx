@@ -235,7 +235,7 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
                             {(() => {
                               const parsed = parseExtendedAliases(p.aliases);
                               if (parsed.productType === 'material') {
-                                return <span className="text-[9px] px-1 py-0.5 bg-amber-500/10 text-amber-500 rounded border border-amber-500/20" style={{ display: 'inline-block', marginTop: '2px' }}>부자재/포장재</span>;
+                                return <span className="text-[9px] px-1 py-0.5 bg-amber-500/10 text-amber-500 rounded border border-amber-500/20" style={{ display: 'inline-block', marginTop: '2px' }}>스콘외 상품</span>;
                               }
                               if (parsed.sconeType === 'package') {
                                 return (

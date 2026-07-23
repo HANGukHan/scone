@@ -233,7 +233,7 @@ export const DEFAULT_ORDERS = [
 ];
 
 export function useSconeDashboard() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>('light');
   const [orders, setOrders] = useState<Record<string, number>>({});
   const [rawText, setRawText] = useState<string>('');
   
@@ -252,7 +252,7 @@ export function useSconeDashboard() {
   const [newSconeShape, setNewSconeShape] = useState<'삼각스콘' | '미니큐브' | '스틱스콘' | '기타'>('삼각스콘');
   const [newSconeOven, setNewSconeOven] = useState<string>('');
   const [newSconeYield, setNewSconeYield] = useState<number>(8);
-  const [newSconeCream, setNewSconeCream] = useState<number>(170);
+  const [newSconeCream, setNewSconeCream] = useState<number>(0);
   const [newSconeAliases, setNewSconeAliases] = useState<string>('');
   const [newSconeProductType, setNewSconeProductType] = useState<'scone' | 'material'>('scone');
   const [newSconeCompositionType, setNewSconeCompositionType] = useState<'general' | 'package'>('general');
@@ -454,9 +454,7 @@ export function useSconeDashboard() {
       year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
     });
     const print1 = document.getElementById("printDate1");
-    const print2 = document.getElementById("printDate2");
     if (print1) print1.innerText = "출력일시: " + formatted;
-    if (print2) print2.innerText = "출력일시: " + formatted;
   }, []);
 
   // Update layout sequences
@@ -1513,7 +1511,7 @@ export function useSconeDashboard() {
       setNewSconeShape("삼각스콘");
       setNewSconeOption("");
       setNewSconeYield(8);
-      setNewSconeCream(170);
+      setNewSconeCream(0);
       setNewSconeProductType('scone');
       setNewSconeCompositionType('general');
     }
@@ -1654,7 +1652,7 @@ export function useSconeDashboard() {
     setNewSconeShape('삼각스콘');
     setNewSconeOven('');
     setNewSconeYield(8);
-    setNewSconeCream(170);
+    setNewSconeCream(0);
     setNewSconeAliases(unmappedName);
     setNewSconeProductType('scone');
     setNewSconeCompositionType('general');

@@ -282,7 +282,7 @@ export default function Home() {
         >
           <span className="drop-icon" style={{ fontSize: '20px', margin: 0, padding: 0, display: 'flex', alignItems: 'center' }}>📁</span>
           <p style={{ fontWeight: '700', fontSize: '13.5px', color: 'var(--text-primary)', margin: 0, padding: 0 }}>
-            [ 이지어드민 엑셀 파일 업로드 ] 클릭하거나 여기에 파일을 드래그하세요 (xls, xlsx)
+            [ 이지어드민 미출고 요약표 업로드 ] 클릭하거나 여기에 파일을 드래그하세요 (xls, xlsx)
           </p>
         </div>
         <input 

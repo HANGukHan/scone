@@ -17,7 +17,6 @@ export const OvenBatchTable: React.FC<OvenBatchTableProps> = ({
     <div className="page-2" style={{ marginTop: '24px' }}>
       <div className="section-title">
         <span>🔥 오븐표</span>
-        <span id="printDate2" className="print-only" style={{ fontSize: '11px', fontWeight: 'normal', marginLeft: 'auto' }} />
       </div>
 
       <div className="table-container">

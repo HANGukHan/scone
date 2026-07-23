@@ -29,7 +29,7 @@ export const FooterMetrics: React.FC<FooterMetricsProps> = ({
   getOrderQtyByMatch
 }) => {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginTop: '20px' }}>
+    <div className="footer-grid page-1" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginTop: '20px' }}>
       {/* Dynamic Sub-Materials table */}
       <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '300px' }}>
         <div className="card-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>

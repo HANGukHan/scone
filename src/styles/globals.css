@@ -623,17 +623,32 @@ body {
 
       /* Reduce service/sub-materials grid footprint in print for A4 1-page fit */
       .footer-grid {
-        margin-top: 8px !important;
+        margin-top: 6px !important;
         gap: 8px !important;
-        grid-template-columns: 1fr 1.2fr !important;
+        grid-template-columns: 2fr 1fr !important;
         page-break-inside: avoid !important;
       }
 
-      .card {
-        padding: 8px 12px !important;
+      .footer-grid .card {
+        padding: 6px 10px !important;
+        min-height: auto !important;
+        max-height: 220px !important;
+        font-size: 7.5pt !important;
+        border: 1px solid #94a3b8 !important;
         border-radius: 6px !important;
         box-shadow: none !important;
-        border: 1px solid #94a3b8 !important;
+      }
+
+      .footer-grid table {
+        font-size: 7pt !important;
+      }
+
+      .footer-grid td, .footer-grid th {
+        padding: 4px 6px !important;
+      }
+
+      .footer-grid .text-lg {
+        font-size: 8.5pt !important;
       }
 
       .grid-materials {

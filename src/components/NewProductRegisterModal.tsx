@@ -174,7 +174,7 @@ export const NewProductRegisterModal: React.FC<NewProductRegisterModalProps> = (
                   } else {
                     setNewSconeShape('삼각스콘');
                     setNewSconeYield(8);
-                    setNewSconeCream(170);
+                    setNewSconeCream(0);
                   }
                 }}
                 style={{
@@ -189,8 +189,8 @@ export const NewProductRegisterModal: React.FC<NewProductRegisterModalProps> = (
                   boxSizing: 'border-box'
                 }}
               >
-                <option value="scone">스콘 생산품</option>
-                <option value="material">부자재/포장재</option>
+                <option value="scone">스콘</option>
+                <option value="material">스콘외 상품</option>
               </select>
             </div>
             <div>
@@ -208,7 +208,7 @@ export const NewProductRegisterModal: React.FC<NewProductRegisterModalProps> = (
                   } else {
                     setNewSconeShape('삼각스콘');
                     setNewSconeYield(8);
-                    setNewSconeCream(170);
+                    setNewSconeCream(0);
                   }
                 }}
                 style={{
@@ -224,7 +224,7 @@ export const NewProductRegisterModal: React.FC<NewProductRegisterModalProps> = (
                 }}
                 disabled={newSconeProductType === 'material'}
               >
-                <option value="general">일반 스콘</option>
+                <option value="general">단일 상품</option>
                 <option value="package">패키지/세트 상품</option>
               </select>
             </div>
@@ -255,7 +255,7 @@ export const NewProductRegisterModal: React.FC<NewProductRegisterModalProps> = (
 
           {newSconeCompositionType === 'general' && newSconeProductType === 'scone' && (
             <div>
-              <label style={{ fontSize: '12px', opacity: 0.75, display: 'block', marginBottom: '4px' }}>형태 지정</label>
+              <label style={{ fontSize: '12px', opacity: 0.75, display: 'block', marginBottom: '4px' }}>형태</label>
               <select 
                 value={newSconeShape}
                 onChange={(e) => {
@@ -269,7 +269,7 @@ export const NewProductRegisterModal: React.FC<NewProductRegisterModalProps> = (
                     setNewSconeCream(0);
                   } else if (val === '삼각스콘') {
                     setNewSconeYield(8);
-                    setNewSconeCream(170);
+                    setNewSconeCream(0);
                   }
                 }}
                 style={{

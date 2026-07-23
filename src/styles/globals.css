@@ -681,18 +681,45 @@ body {
       body[data-print-mode="page2"] .page-2 {
         page-break-before: avoid !important;
         margin-top: 0 !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        page-break-inside: avoid !important;
+        box-sizing: border-box !important;
+      }
+
+      body[data-print-mode="page1"] .page-1 {
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        page-break-inside: avoid !important;
+        box-sizing: border-box !important;
       }
 
       /* Normal Print page breaks */
       body:not([data-print-mode]) .page-1 {
-        page-break-after: always;
-        width: 100%;
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+        width: 100% !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
       }
 
       body:not([data-print-mode]) .page-2 {
-        page-break-before: always;
-        width: 100%;
-        margin-top: 15px;
+        page-break-before: always !important;
+        page-break-inside: avoid !important;
+        width: 100% !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+        margin-top: 0 !important;
+      }
+
+      /* Hide spacer texts on print, keeping cell borders */
+      .spacer-row td, 
+      .spacer-row input, 
+      .spacer-row .spacer-input-field {
+        color: transparent !important;
+        background-color: transparent !important;
       }
 
       h2, .section-title {

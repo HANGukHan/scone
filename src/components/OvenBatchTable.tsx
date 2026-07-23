@@ -38,7 +38,7 @@ export const OvenBatchTable: React.FC<OvenBatchTableProps> = ({
               const rows = productSequence.map((item) => {
                 if (item.type === 'spacer') {
                   return (
-                    <tr key={"oven-" + item.id} style={{ height: '42px' }}>
+                    <tr key={"oven-" + item.id} className="spacer-row" style={{ height: '42px' }}>
                       <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: 'bold', background: 'rgba(255,255,255,0.02)' }}>{item.name || '\u00A0'}</td>
                       <td>&nbsp;</td>
                       <td>&nbsp;</td>

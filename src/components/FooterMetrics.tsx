@@ -54,7 +54,7 @@ export const FooterMetrics: React.FC<FooterMetricsProps> = ({
                 <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: 'var(--accent-color)' }}>🍶 생크림 소요 총량</td>
                 <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-secondary)' }}>-</td>
                 <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'extrabold', color: 'var(--accent-color)' }}>
-                  {totals.creamLitres} L ({(totals.creamLitres * 1000).toLocaleString()} ml)
+                  {totals.creamLitres}L
                 </td>
               </tr>
 

@@ -140,7 +140,7 @@ export default function Home() {
     <div className="dashboard-container">
       
       {/* Top Header Card */}
-      <header className="page-1 page-2">
+      <header className="page-1 page-2 no-print">
         <div className="brand">
           <h1>스콘 생산량 관리 시스템</h1>
           <p>Supabase 마스터 연동 및 실시간 오븐 배정 포털</p>
@@ -261,28 +261,27 @@ export default function Home() {
               handleExcelFile(e.dataTransfer.files[0]);
             }
           }}
-          className="drop-zone hover:scale-[1.01] transition-all duration-300"
+          className="upload-zone hover:scale-[1.01] transition-all duration-300"
           style={{
-            border: '2px dashed rgba(99, 102, 241, 0.4)',
-            borderRadius: '12px',
-            padding: '24px',
+            border: '2px dashed var(--accent-color)',
+            borderRadius: '10px',
+            padding: '12px 20px',
             textAlign: 'center',
             cursor: 'pointer',
             background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(168, 85, 247, 0.03) 100%)',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
             display: 'flex',
-            flexDirection: 'column',
+            flexDirection: 'row',
             alignItems: 'center',
-            gap: '8px'
+            justifyContent: 'center',
+            gap: '12px',
+            width: '100%',
           }}
         >
-          <span className="drop-icon" style={{ fontSize: '32px' }}>📁</span>
-          <p style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-primary)' }}>
-            [ 이지어드민 엑셀 파일 업로드 ] 클릭하거나 여기에 파일을 드래그하세요
+          <span className="drop-icon" style={{ fontSize: '20px', margin: 0, padding: 0, display: 'flex', alignItems: 'center' }}>📁</span>
+          <p style={{ fontWeight: '700', fontSize: '13.5px', color: 'var(--text-primary)', margin: 0, padding: 0 }}>
+            [ 이지어드민 엑셀 파일 업로드 ] 클릭하거나 여기에 파일을 드래그하세요 (xls, xlsx)
           </p>
-          <span className="drop-hint" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-            (xls, xlsx 포맷 파일 지원)
-          </span>
         </div>
         <input 
           type="file" 
@@ -331,7 +330,7 @@ export default function Home() {
           </div>
         )}
         <div className="section-title">
-          <span>📝 1페이지 : 대표 품목별 당일 생산량 집계표</span>
+          <span>📝 생산량표</span>
           <span id="printDate1" className="print-only" style={{ fontSize: '11px', fontWeight: 'normal', marginLeft: 'auto' }} />
         </div>
 

@@ -16,7 +16,7 @@ export const OvenBatchTable: React.FC<OvenBatchTableProps> = ({
   return (
     <div className="page-2" style={{ marginTop: '24px' }}>
       <div className="section-title">
-        <span>🔥 2페이지 : 오븐 번호별 삼각 판수 상세 집계</span>
+        <span>🔥 오븐표</span>
         <span id="printDate2" className="print-only" style={{ fontSize: '11px', fontWeight: 'normal', marginLeft: 'auto' }} />
       </div>
 
@@ -39,13 +39,13 @@ export const OvenBatchTable: React.FC<OvenBatchTableProps> = ({
               const rows = productSequence.map((item) => {
                 if (item.type === 'spacer') {
                   return (
-                    <tr key={"oven-" + item.id}>
-                      <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: 'bold', background: 'rgba(255,255,255,0.02)' }}>{item.name}</td>
-                      <td></td>
-                      <td></td>
+                    <tr key={"oven-" + item.id} style={{ height: '42px' }}>
+                      <td style={{ textAlign: 'left', paddingLeft: '16px', fontWeight: 'bold', background: 'rgba(255,255,255,0.02)' }}>{item.name || '\u00A0'}</td>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
                       <td style={{ display: 'none' }}></td>
-                      <td></td>
-                      <td></td>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
                     </tr>
                   );
                 }

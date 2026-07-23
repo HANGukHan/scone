@@ -49,23 +49,23 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
             <th style={{ textAlign: 'left', paddingLeft: '16px', minWidth: '160px' }}>스콘명</th>
             <th>삼각 오븐</th>
             <th>큐브/스틱 오븐</th>
-            <th className="hl-pans">합계 판수</th>
+            <th className="hl-pans">합계 판수(총 판수)</th>
             
             {/* Triangular Scone Header Group */}
-            <th style={{ background: 'rgba(99, 102, 241, 0.05)' }}>삼각 주문량</th>
-            <th className="no-print" style={{ background: 'rgba(99, 102, 241, 0.05)' }}>이월재고</th>
-            <th className="no-print" style={{ background: 'rgba(99, 102, 241, 0.05)' }}>수동조정</th>
+            <th style={{ background: 'rgba(99, 102, 241, 0.05)' }}>삼각 주문량(개)</th>
+            <th className="no-print" style={{ background: 'rgba(99, 102, 241, 0.05)' }}>이월재고(개)</th>
+            <th className="no-print" style={{ background: 'rgba(99, 102, 241, 0.05)' }}>수동조정(판)</th>
             <th style={{ background: 'rgba(99, 102, 241, 0.05)' }}>삼각 판수</th>
-            <th style={{ background: 'rgba(99, 102, 241, 0.05)', borderRight: '2px solid var(--border-color)' }}>남은량 (개)</th>
+            <th className="hl-rem-qty" style={{ background: 'rgba(99, 102, 241, 0.05)', borderRight: '2px solid var(--border-color)' }}>남은량 (개)</th>
             
             {/* Mini Cube Header Group */}
             <th className="no-print" style={{ background: 'rgba(236, 72, 153, 0.05)' }}>이월재고 (봉)</th>
             <th style={{ background: 'rgba(236, 72, 153, 0.05)' }}>큐브 판수</th>
-            <th style={{ background: 'rgba(236, 72, 153, 0.05)', borderRight: '2px solid var(--border-color)' }}>남은량 (봉)</th>
+            <th className="hl-rem-qty" style={{ background: 'rgba(236, 72, 153, 0.05)', borderRight: '2px solid var(--border-color)' }}>남은량 (봉)</th>
             
             {/* Stick Scone Header Group */}
             <th style={{ background: 'rgba(245, 158, 11, 0.05)' }}>스틱 판수</th>
-            <th style={{ background: 'rgba(245, 158, 11, 0.05)' }}>남은량 (팩)</th>
+            <th className="hl-rem-qty" style={{ background: 'rgba(245, 158, 11, 0.05)' }}>남은량 (팩)</th>
           </tr>
         </thead>
         <tbody>
@@ -90,7 +90,16 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
                         onChange={(e) => updateSpacerName(index, e.target.value)} 
                         placeholder="구분선/공백"
                       />
-                      <button onClick={() => deleteSpacer(index)} className="btn btn-secondary no-print" style={{ padding: '2px 6px', fontSize: '10px', lineHeight: 1, borderRadius: '4px' }}>x</button>
+                      <button 
+                        onClick={() => deleteSpacer(index)}
+                        className="no-print text-rose-500 hover:text-rose-400 hover:bg-rose-500/20 w-7 h-7 rounded-lg flex items-center justify-center transition border border-rose-500/20 bg-rose-500/5"
+                        title="구분선 삭제"
+                        style={{ cursor: 'pointer', flexShrink: 0, padding: 0 }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>
+                        </svg>
+                      </button>
                     </div>
                   </td>
                   <td></td>
@@ -129,11 +138,13 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
                     <span>{r.name}</span>
                     <button 
                       onClick={() => handleHideProductName(r.name)}
-                      className="no-print text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold transition ml-2 border border-rose-500/20"
+                      className="no-print text-rose-500 hover:text-rose-400 hover:bg-rose-500/20 w-7 h-7 rounded-lg flex items-center justify-center transition ml-2 border border-rose-500/20 bg-rose-500/5"
                       title="당일 생산량 집계에서 임시 숨김"
-                      style={{ cursor: 'pointer', flexShrink: 0 }}
+                      style={{ cursor: 'pointer', flexShrink: 0, padding: 0 }}
                     >
-                      ✕
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>
+                      </svg>
                     </button>
                   </div>
                 </td>
@@ -171,7 +182,7 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
                   ) : ''}
                 </td>
                 <td className="hl-adjusted-pans">{r.hasTri ? r.triU : ''}</td>
-                <td style={{ 
+                <td className="hl-rem-qty" style={{ 
                   borderRight: '2px solid var(--border-color)',
                   background: (r.hasTri && r.triW === 0) ? 'rgba(245, 158, 11, 0.15)' : 'transparent',
                   color: (r.hasTri && r.triW === 0) ? '#fb923c' : 'inherit',
@@ -193,13 +204,13 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
                   ) : ''}
                 </td>
                 <td className="hl-adjusted-pans">{r.hasCube ? r.cubeY : ''}</td>
-                <td className="hl-rem" style={{ borderRight: '2px solid var(--border-color)' }}>
+                <td className="hl-rem-qty" style={{ borderRight: '2px solid var(--border-color)' }}>
                   {r.hasCube && r.name.includes('[미니쉐이크]') ? (pCube && pCube.pcs_per_pan === 4 ? r.cubeAB : r.cubeAA) : ''}
                 </td>
                 
                 {/* Stick */}
                 <td className="hl-adjusted-pans">{r.hasStick ? r.stickAC : ''}</td>
-                <td className="hl-rem">{r.hasStick ? r.stickAD : ''}</td>
+                <td className="hl-rem-qty">{r.hasStick ? r.stickAD : ''}</td>
               </tr>
             );
           })}
@@ -217,12 +228,12 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
             <td className="no-print"></td>
             <td className="no-print"></td>
             <td id="sumTriU">{Object.values(computedData).reduce((sum, r) => sum + r.triU, 0)}</td>
-            <td id="sumTriW" style={{ borderRight: '2px solid var(--border-color)' }}>{Object.values(computedData).reduce((sum, r) => sum + r.triW, 0)}</td>
+            <td id="sumTriW" className="hl-rem-qty" style={{ borderRight: '2px solid var(--border-color)' }}>{Object.values(computedData).reduce((sum, r) => sum + r.triW, 0)}</td>
             
             {/* Cube */}
             <td className="no-print"></td>
             <td id="sumCubeY">{Object.values(computedData).reduce((sum, r) => sum + r.cubeY, 0)}</td>
-            <td id="sumCubeAB" style={{ borderRight: '2px solid var(--border-color)' }}>
+            <td id="sumCubeAB" className="hl-rem-qty" style={{ borderRight: '2px solid var(--border-color)' }}>
               {Object.values(computedData).reduce((sum, r) => {
                 if (!r.name.includes('[미니쉐이크]')) return sum;
                 const pCube = products.find(p => p.product_name === r.name && p.shape_type === '미니큐브');
@@ -233,7 +244,7 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
             
             {/* Stick */}
             <td id="sumStickAC">{Object.values(computedData).reduce((sum, r) => sum + r.stickAC, 0)}</td>
-            <td id="sumStickAD">{Object.values(computedData).reduce((sum, r) => sum + r.stickAD, 0)}</td>
+            <td id="sumStickAD" className="hl-rem-qty">{Object.values(computedData).reduce((sum, r) => sum + r.stickAD, 0)}</td>
           </tr>
         </tbody>
       </table>

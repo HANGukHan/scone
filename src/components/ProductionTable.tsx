@@ -53,13 +53,13 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
             
             {/* Triangular Scone Header Group */}
             <th style={{ background: 'rgba(99, 102, 241, 0.05)' }}>삼각 주문량</th>
-            <th className="no-print" style={{ background: 'rgba(99, 102, 241, 0.05)' }}>전날남음</th>
+            <th className="no-print" style={{ background: 'rgba(99, 102, 241, 0.05)' }}>이월재고</th>
             <th className="no-print" style={{ background: 'rgba(99, 102, 241, 0.05)' }}>수동조정</th>
             <th style={{ background: 'rgba(99, 102, 241, 0.05)' }}>삼각 판수</th>
             <th style={{ background: 'rgba(99, 102, 241, 0.05)', borderRight: '2px solid var(--border-color)' }}>남은량 (개)</th>
             
             {/* Mini Cube Header Group */}
-            <th className="no-print" style={{ background: 'rgba(236, 72, 153, 0.05)' }}>전날남음 (봉)</th>
+            <th className="no-print" style={{ background: 'rgba(236, 72, 153, 0.05)' }}>이월재고 (봉)</th>
             <th style={{ background: 'rgba(236, 72, 153, 0.05)' }}>큐브 판수</th>
             <th style={{ background: 'rgba(236, 72, 153, 0.05)', borderRight: '2px solid var(--border-color)' }}>남은량 (봉)</th>
             

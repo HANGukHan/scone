@@ -465,7 +465,7 @@ export function useSconeDashboard() {
 
     const activeBaseNames = Array.from(new Set(
       products
-        .filter(p => !p.is_service)
+        .filter(p => !p.is_service && p.product_name !== 'SYSTEM_SPACER')
         .filter(p => {
           const parsed = parseExtendedAliases(p.aliases);
           return parsed.productType !== 'material' && parsed.sconeType !== 'package';
@@ -488,6 +488,57 @@ export function useSconeDashboard() {
     ));
 
     setProductSequence(prevSeq => {
+      // 1. If prevSeq is empty, build from database spacers and active products
+      if (prevSeq.length === 0) {
+        const spacers = products
+          .filter(p => p.product_name === 'SYSTEM_SPACER')
+          .map(p => {
+            const parsed = parseExtendedAliases(p.aliases);
+            return {
+              id: p.option_name || `spacer-${p.id}`,
+              type: 'spacer' as const,
+              name: parsed.cleanAliases || "",
+              sortOrder: parsed.sortOrder
+            };
+          });
+
+        const prodItems = products
+          .filter(p => activeBaseNames.includes(p.product_name))
+          .map(p => {
+            const parsed = parseExtendedAliases(p.aliases);
+            return {
+              id: p.id,
+              type: 'product' as const,
+              name: p.product_name,
+              sortOrder: parsed.sortOrder
+            };
+          });
+
+        // Deduplicate product names (keep smallest sortOrder)
+        const uniqueItemsMap = new Map<string, any>();
+        [...spacers, ...prodItems].forEach(item => {
+          const key = item.type === 'spacer' ? `spacer-${item.id}` : `product-${item.name}`;
+          if (!uniqueItemsMap.has(key)) {
+            uniqueItemsMap.set(key, item);
+          } else {
+            const existing = uniqueItemsMap.get(key);
+            if (item.sortOrder < existing.sortOrder) {
+              uniqueItemsMap.set(key, item);
+            }
+          }
+        });
+
+        const sortedCombined = Array.from(uniqueItemsMap.values())
+          .sort((a, b) => a.sortOrder - b.sortOrder);
+
+        return sortedCombined.map(item => ({
+          id: item.id,
+          type: item.type,
+          name: item.name
+        }));
+      }
+
+      // 2. If prevSeq has elements, preserve layout positions
       const productsInSeq = prevSeq.filter(item => item.type === 'product' && activeBaseNames.includes(item.name));
       productsInSeq.sort((a, b) => {
         return activeBaseNames.indexOf(a.name) - activeBaseNames.indexOf(b.name);
@@ -767,7 +818,10 @@ export function useSconeDashboard() {
   // Dynamic sub-materials breakdown
   const subMaterials = useMemo(() => {
     return products
-      .filter(p => parseExtendedAliases(p.aliases).productType === 'material')
+      .filter(p => {
+        const parsed = parseExtendedAliases(p.aliases);
+        return parsed.productType === 'material' || p.product_name.includes('[미니쉐이크]');
+      })
       .map(p => {
         const qty = getOrderQtyByMatch(p);
         return {
@@ -1159,18 +1213,24 @@ export function useSconeDashboard() {
     setHiddenProductNames(prev => [...prev, name]);
   }
 
-  async function handleSaveCurrentOrder() {
-    const orderedNames = productSequence
-      .filter(item => item.type === 'product')
-      .map(item => item.name);
+  function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
 
-    const updatedProducts = products.map(p => {
+  async function handleSaveCurrentOrder() {
+    const cleanProducts = products.filter(p => p.product_name !== 'SYSTEM_SPACER');
+
+    const updatedScones = cleanProducts.map(p => {
       const parsed = parseExtendedAliases(p.aliases);
       if (parsed.productType === 'material' || parsed.sconeType === 'package' || p.is_service) {
         return p;
       }
       
-      const idx = orderedNames.indexOf(p.product_name);
+      const idx = productSequence.findIndex(item => item.type === 'product' && item.name === p.product_name);
       const newSortOrder = idx !== -1 ? idx + 1 : 9999;
       
       const serialized = serializeExtendedAliases(
@@ -1188,21 +1248,61 @@ export function useSconeDashboard() {
       };
     });
 
+    const newSpacerProducts: Product[] = [];
+    productSequence.forEach((item, index) => {
+      if (item.type === 'spacer') {
+        const spacerId = item.id;
+        const existing = products.find(p => p.product_name === 'SYSTEM_SPACER' && p.option_name === spacerId);
+        const id = existing ? existing.id : generateUUID();
+        
+        newSpacerProducts.push({
+          id,
+          product_name: 'SYSTEM_SPACER',
+          option_name: spacerId,
+          shape_type: '기타',
+          pcs_per_pan: 1,
+          is_service: false,
+          cream_per_pan: 0,
+          aliases: `${item.name}::sort_order=${index + 1}`
+        } as Product);
+      }
+    });
+
+    const finalProducts = [...updatedScones, ...newSpacerProducts];
+
     if (hasValidSupabaseConfig) {
       try {
-        const { error } = await supabase
+        const { error: deleteError } = await supabase
           .from('products')
-          .upsert(updatedProducts);
-        if (error) throw error;
-        setProducts(updatedProducts);
-        alert("현재 배치 순서가 데이터베이스에 저장되었습니다!");
+          .delete()
+          .eq('product_name', 'SYSTEM_SPACER');
+        if (deleteError) throw deleteError;
+
+        const { error: upsertError } = await supabase
+          .from('products')
+          .upsert(finalProducts);
+        if (upsertError) throw upsertError;
+
+        setProducts(finalProducts);
+        alert("현재 배치 순서와 구분선/공백 위치가 데이터베이스에 저장되었습니다!");
       } catch (err: any) {
         alert("순서 저장 실패: " + err.message);
       }
     } else {
-      setProducts(updatedProducts);
-      alert("현재 배치 순서가 로컬에 저장되었습니다! (Supabase 미연동)");
+      setProducts(finalProducts);
+      alert("현재 배치 순서와 구분선/공백 위치가 로컬에 저장되었습니다! (Supabase 미연동)");
     }
+
+    localStorage.setItem('masterProductsBackup', JSON.stringify(finalProducts));
+    const now = new Date();
+    const yy = String(now.getFullYear()).substring(2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const formattedTime = `${yy}.${mm}.${dd} ${hh}:${min}`;
+    localStorage.setItem('masterProductsBackupTime', formattedTime);
+    setBackupTime(formattedTime);
   }
 
   async function handleRestoreFromBackup() {

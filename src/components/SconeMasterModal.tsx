@@ -207,14 +207,22 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
                 </thead>
                 <tbody>
                   {(() => {
-                    const sortedProducts = [...products].sort((a, b) => {
+                    const filtered = products.filter(p => p.product_name !== 'SYSTEM_SPACER');
+                    const shapeOrder: Record<string, number> = { '삼각스콘': 1, '스틱스콘': 2, '미니큐브': 3, '기타': 4 };
+                    const sortedProducts = filtered.sort((a, b) => {
+                      const orderA = shapeOrder[a.shape_type] || 5;
+                      const orderB = shapeOrder[b.shape_type] || 5;
+                      if (orderA !== orderB) return orderA - orderB;
+
                       const hasOptA = a.option_name && a.option_name.trim() !== '';
                       const hasOptB = b.option_name && b.option_name.trim() !== '';
                       if (hasOptA !== hasOptB) {
                         return (hasOptA ? 1 : 0) - (hasOptB ? 1 : 0);
                       }
+
                       const nameCompare = a.product_name.localeCompare(b.product_name, 'ko');
                       if (nameCompare !== 0) return nameCompare;
+
                       return (a.option_name || '').localeCompare(b.option_name || '', 'ko');
                     });
                     return sortedProducts.map((p) => (

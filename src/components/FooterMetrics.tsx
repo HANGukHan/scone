@@ -34,7 +34,7 @@ export const FooterMetrics: React.FC<FooterMetricsProps> = ({
       <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '300px' }}>
         <div className="card-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
-            <span>📦 부자재 / 포장재 주문 집계 현황</span>
+            <span>📦 스콘이외 상품 품목</span>
             <span className="text-xs opacity-50 font-normal ml-2">총 {subMaterials.length}개 품목</span>
           </div>
         </div>
@@ -43,36 +43,36 @@ export const FooterMetrics: React.FC<FooterMetricsProps> = ({
           <table className="production-table text-xs" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--bg-surface-elevated)', borderBottom: '1px solid var(--border-color)' }}>
-                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 'bold' }}>품목명</th>
-                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 'bold' }}>옵션/구분</th>
+                <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 'bold' }}>품목명</th>
+                <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 'bold' }}>옵션/구분</th>
                 <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', width: '100px' }}>주문량</th>
               </tr>
             </thead>
             <tbody>
+              {/* Cream summary computed row - 최상단 */}
+              <tr style={{ background: 'rgba(99, 102, 241, 0.12)', borderBottom: '2px solid var(--border-color)', fontWeight: 'bold' }}>
+                <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: 'var(--accent-color)' }}>🍶 생크림 소요 총량</td>
+                <td style={{ padding: '12px', textAlign: 'center', color: 'var(--text-secondary)' }}>-</td>
+                <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'extrabold', color: 'var(--accent-color)' }}>
+                  {totals.creamLitres} L ({(totals.creamLitres * 1000).toLocaleString()} ml)
+                </td>
+              </tr>
+
               {subMaterials.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="text-center opacity-50 py-12">등록된 부자재/포장재 마스터 상품이 없습니다.</td>
+                  <td colSpan={3} className="text-center opacity-50 py-12">등록된 스콘이외 마스터 상품이 없습니다.</td>
                 </tr>
               ) : (
                 subMaterials.map((m) => (
                   <tr key={m.id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }} className="hover:bg-white/5">
-                    <td style={{ padding: '10px 12px', fontWeight: 'bold', color: 'var(--text-primary)' }}>{m.name}</td>
-                    <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>{m.option || '-'}</td>
+                    <td style={{ padding: '10px 12px', fontWeight: 'bold', color: 'var(--text-primary)', textAlign: 'center' }}>{m.name}</td>
+                    <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', textAlign: 'center' }}>{m.option || '-'}</td>
                     <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', color: m.qty > 0 ? 'var(--accent-color)' : 'var(--text-muted)' }}>
                       {m.qty} 개
                     </td>
                   </tr>
                 ))
               )}
-              
-              {/* Cream summary computed row */}
-              <tr style={{ background: 'rgba(99, 102, 241, 0.05)', borderTop: '2px solid var(--border-color)' }}>
-                <td style={{ padding: '12px', fontWeight: 'bold', color: 'var(--accent-color)' }}>🍶 생크림 소요 총량</td>
-                <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>-</td>
-                <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', color: 'var(--accent-color)' }}>
-                  {totals.creamLitres} L
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>

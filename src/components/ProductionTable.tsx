@@ -22,6 +22,7 @@ interface ProductionTableProps {
     shortage: number;
     serviceSconeOrdered: number;
   };
+  addSpacer: () => void;
 }
 
 export const ProductionTable: React.FC<ProductionTableProps> = ({
@@ -38,25 +39,35 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
   handleDragOver,
   handleDrop,
   handleHideProductName,
-  totals
+  totals,
+  addSpacer
 }) => {
   return (
     <div className="table-container">
       <table id="productionTable">
         <thead>
           <tr style={{ background: 'var(--bg-surface-elevated)' }}>
-            <th className="no-print col-drag-handle" style={{ width: '40px' }} />
+            <th className="no-print col-drag-handle" style={{ width: '56px', padding: '0 4px', textAlign: 'center' }}>
+              <button 
+                onClick={addSpacer} 
+                className="no-print text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10 text-[10px] h-6 px-1.5 rounded border border-emerald-500/20 font-bold transition"
+                title="구분선/공백 추가"
+                style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+              >
+                ➕ 공백
+              </button>
+            </th>
             <th style={{ textAlign: 'left', paddingLeft: '16px', minWidth: '160px' }}>스콘명</th>
             <th>삼각 오븐</th>
             <th>큐브/스틱 오븐</th>
-            <th className="hl-pans">합계 판수(총 판수)</th>
+            <th className="hl-pans">총 판수</th>
             
             {/* Triangular Scone Header Group */}
             <th style={{ background: 'rgba(99, 102, 241, 0.05)' }}>삼각 주문량(개)</th>
             <th className="no-print" style={{ background: 'rgba(99, 102, 241, 0.05)' }}>이월재고(개)</th>
             <th className="no-print" style={{ background: 'rgba(99, 102, 241, 0.05)' }}>수동조정(판)</th>
             <th style={{ background: 'rgba(99, 102, 241, 0.05)' }}>삼각 판수</th>
-            <th className="hl-rem-qty" style={{ background: 'rgba(99, 102, 241, 0.05)', borderRight: '2px solid var(--border-color)' }}>남은량 (개)</th>
+            <th className="hl-rem-qty-tri" style={{ background: 'rgba(99, 102, 241, 0.05)', borderRight: '2px solid var(--border-color)' }}>남은량 (개)</th>
             
             {/* Mini Cube Header Group */}
             <th className="no-print" style={{ background: 'rgba(236, 72, 153, 0.05)' }}>이월재고 (봉)</th>
@@ -104,15 +115,15 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
                   </td>
                   <td></td>
                   <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td style={{ borderRight: '2px solid var(--border-color)' }}></td>
+                  <td className="no-print"></td>
                   <td className="no-print"></td>
                   <td></td>
-                  <td style={{ borderRight: '2px solid var(--border-color)' }}></td>
+                  <td className="hl-rem-qty-tri" style={{ borderRight: '2px solid var(--border-color)' }}></td>
+                  <td className="no-print"></td>
                   <td></td>
+                  <td className="hl-rem-qty" style={{ borderRight: '2px solid var(--border-color)' }}></td>
                   <td></td>
+                  <td className="hl-rem-qty"></td>
                 </tr>
               );
             }
@@ -172,8 +183,12 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
                     <input 
                       type="number" 
                       className="table-input" 
-                      value={adjVal} 
-                      onChange={(e) => handleInputVal(r.name, 'manualAdjustTri', parseInt(e.target.value, 10) || 0)} 
+                      value={adjVal === 0 ? '' : adjVal} 
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? 0 : (parseInt(e.target.value, 10) || 0);
+                        handleInputVal(r.name, 'manualAdjustTri', val);
+                      }}
+                      onFocus={(e) => e.target.select()}
                       style={{
                         color: hasAdjHighlight ? '#fb923c' : 'inherit',
                         fontWeight: hasAdjHighlight ? 'bold' : 'normal'
@@ -182,13 +197,13 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
                   ) : ''}
                 </td>
                 <td className="hl-adjusted-pans">{r.hasTri ? r.triU : ''}</td>
-                <td className="hl-rem-qty" style={{ 
-                  borderRight: '2px solid var(--border-color)',
-                  background: (r.hasTri && r.triW === 0) ? 'rgba(245, 158, 11, 0.15)' : 'transparent',
-                  color: (r.hasTri && r.triW === 0) ? '#fb923c' : 'inherit',
-                  fontWeight: (r.hasTri && r.triW === 0) ? 'bold' : 'normal'
-                }}>
-                  {r.hasTri ? r.triW : ''}
+                <td className="hl-rem-qty-tri" style={{ 
+                   borderRight: '2px solid var(--border-color)',
+                   background: (r.hasTri && r.triW === 0) ? 'rgba(245, 158, 11, 0.15)' : 'transparent',
+                   color: (r.hasTri && r.triW === 0) ? '#fb923c' : 'inherit',
+                   fontWeight: (r.hasTri && r.triW === 0) ? 'bold' : 'normal'
+                 }}>
+                   {r.hasTri ? r.triW : ''}
                 </td>
                 
                 {/* Cube */}
@@ -228,7 +243,7 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
             <td className="no-print"></td>
             <td className="no-print"></td>
             <td id="sumTriU">{Object.values(computedData).reduce((sum, r) => sum + r.triU, 0)}</td>
-            <td id="sumTriW" className="hl-rem-qty" style={{ borderRight: '2px solid var(--border-color)' }}>{Object.values(computedData).reduce((sum, r) => sum + r.triW, 0)}</td>
+            <td id="sumTriW" className="hl-rem-qty-tri" style={{ borderRight: '2px solid var(--border-color)' }}>{Object.values(computedData).reduce((sum, r) => sum + r.triW, 0)}</td>
             
             {/* Cube */}
             <td className="no-print"></td>

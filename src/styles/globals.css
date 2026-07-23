@@ -553,8 +553,8 @@ body {
     /* Print Preview Layout Control Styling */
     @media print {
       @page {
-        size: A4;
-        margin: 8mm 10mm 8mm 10mm;
+        size: landscape;
+        margin: 10mm;
       }
 
       body {
@@ -562,6 +562,8 @@ body {
         color: #000000 !important;
         padding: 0 !important;
         font-size: 9pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
 
       .no-print {
@@ -702,6 +704,13 @@ body {
         border: 1.5px solid #000000 !important;
         font-weight: bold !important;
       }
+
+      .hl-rem-qty-tri {
+        background-color: #fef9c3 !important;
+        color: #854d0e !important;
+        border: 1.5px solid #000000 !important;
+        font-weight: bold !important;
+      }
     }
 
     /* Screen Mode Highlights */
@@ -712,5 +721,11 @@ body {
     }
 
     .hl-rem-qty {
+      font-weight: bold !important;
+    }
+
+    .hl-rem-qty-tri {
+      background-color: #fef9c3 !important;
+      color: #854d0e !important;
       font-weight: bold !important;
     }

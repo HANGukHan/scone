@@ -798,7 +798,7 @@ export function useSconeDashboard() {
     
     const totalPans = rows.reduce((sum, r) => sum + r.totalQ, 0);
     const sumCream = rows.reduce((sum, r) => sum + r.creamAK, 0);
-    const creamLitres = parseFloat((sumCream / 1000).toFixed(2));
+    const creamLitres = Math.round(sumCream / 1000);
 
     const sumTriW = rows.reduce((sum, r) => sum + r.triW, 0);
     const sumStickAD = rows.reduce((sum, r) => sum + r.stickAD, 0);

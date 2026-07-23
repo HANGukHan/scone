@@ -275,7 +275,9 @@ export default function Home() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: '12px',
-            width: '100%',
+            width: '25%',
+            minWidth: '240px',
+            maxWidth: '320px',
           }}
         >
           <span className="drop-icon" style={{ fontSize: '20px', margin: 0, padding: 0, display: 'flex', alignItems: 'center' }}>📁</span>
@@ -292,12 +294,6 @@ export default function Home() {
         />
         
         <div style={{ display: 'flex', gap: '8px', width: '100%', marginTop: '12px', flexWrap: 'wrap' }}>
-          <button onClick={addSpacer} className="btn btn-secondary font-bold" style={{ flex: '1 1 auto' }}>
-            ➕ 구분선/공백 추가
-          </button>
-          <button onClick={handleSaveCurrentOrder} className="btn btn-secondary font-bold" style={{ flex: '1 1 auto', background: 'rgba(99, 102, 241, 0.2)', border: '1px solid var(--accent-color)', color: 'var(--text-primary)' }}>
-            💾 현재 순서/위치 저장
-          </button>
           <button onClick={() => printPage('page1')} className="btn btn-primary font-bold">
             🖨️ 1페이지 인쇄
           </button>
@@ -329,8 +325,23 @@ export default function Home() {
             <span>서비스스콘이 부족합니다! (부족 수량: {totals.shortage}개)</span>
           </div>
         )}
-        <div className="section-title">
+        <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span>📝 생산량표</span>
+          <button 
+            onClick={handleSaveCurrentOrder} 
+            className="btn btn-secondary no-print font-bold" 
+            style={{ 
+              padding: '4px 10px', 
+              fontSize: '11.5px', 
+              height: '26px', 
+              background: 'rgba(99, 102, 241, 0.2)', 
+              border: '1px solid var(--accent-color)', 
+              color: 'var(--text-primary)',
+              cursor: 'pointer'
+            }}
+          >
+            💾 현 순서 저장
+          </button>
           <span id="printDate1" className="print-only" style={{ fontSize: '11px', fontWeight: 'normal', marginLeft: 'auto' }} />
         </div>
 
@@ -349,6 +360,7 @@ export default function Home() {
           handleDrop={handleDrop}
           handleHideProductName={handleHideProductName}
           totals={totals}
+          addSpacer={addSpacer}
         />
 
         {/* Footer Material Metrics & Service shortages */}

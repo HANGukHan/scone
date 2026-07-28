@@ -181,6 +181,41 @@ export function fuzzyNormalizeProductName(name: string): string {
     .trim();
 }
 
+export function extractBaseSconeName(name: string): string {
+  if (!name) return '';
+  return name
+    .replace(/\[하프팩\]/g, '')
+    .replace(/\[세트\]/g, '')
+    .replace(/\[미니쉐이크\]/g, '')
+    .replace(/미니큐브/g, '')
+    .replace(/스틱 3팩/g, '')
+    .replace(/스틱/g, '')
+    .replace(/스콘/g, '')
+    .replace(/데솔오바/g, '데솔오트밀바')
+    .replace(/귀초칩/g, '귀리초코칩')
+    .replace(/더티너티밤/g, '더티너티밤')
+    .replace(/데치/g, '데이츠치아씨드')
+    .replace(/말차오트초코칩/g, '말차오트초코칩')
+    .replace(/바닐라피칸/g, '바닐라피칸')
+    .replace(/버터밀크비스킷/g, '버터밀크비스킷')
+    .replace(/배리초코칩/g, '배리초코칩')
+    .replace(/순수오트/g, '순수오트')
+    .replace(/카카오/g, '카카오')
+    .replace(/통밀츄러/g, '츄러')
+    .replace(/OXO/g, 'OXO')
+    .replace(/[-]/g, '')
+    .replace(/[\s\uFEFF\xA0]+/g, '')
+    .trim();
+}
+
+export function getRepresentativeName(groupKey: string, products: Product[]): string {
+  const groupVariants = products.filter(p => extractBaseSconeName(p.product_name) === groupKey);
+  if (groupVariants.length === 0) return groupKey;
+  const triVariant = groupVariants.find(p => p.shape_type === '삼각스콘');
+  if (triVariant) return triVariant.product_name;
+  return groupVariants[0].product_name;
+}
+
 export function findMatchedProduct(orderName: string, products: Product[]): Product | undefined {
   const orderNorm = normalize(orderName);
   
@@ -228,9 +263,9 @@ export function findMatchedProduct(orderName: string, products: Product[]): Prod
   if (shapeMatched) return shapeMatched;
 
   // 4. Try to find a variant of the same base name with correct shape in products database
-  const baseNames = Array.from(new Set(candidates.map(p => p.product_name)));
-  for (const bName of baseNames) {
-    const variantInDb = products.find(p => p.product_name === bName && p.shape_type === orderShape);
+  const groupKeys = Array.from(new Set(candidates.map(p => extractBaseSconeName(p.product_name))));
+  for (const gKey of groupKeys) {
+    const variantInDb = products.find(p => extractBaseSconeName(p.product_name) === gKey && p.shape_type === orderShape);
     if (variantInDb) return variantInDb;
   }
 
@@ -484,21 +519,33 @@ export function useSconeDashboard() {
           return parsed.productType !== 'material' && parsed.sconeType !== 'package';
         })
         .filter(p => {
+          const repName = getRepresentativeName(extractBaseSconeName(p.product_name), products);
+          if (hiddenProductNames.includes(repName)) return false;
           const parsed = parseExtendedAliases(p.aliases);
           if (parsed.sortOrder === 0) return false;
-          if (hiddenProductNames.includes(p.product_name)) return false;
           return parsed.sortOrder < 9999 || getOrderQtyByMatch(p) > 0;
         })
-        .sort((a, b) => {
-          const parsedA = parseExtendedAliases(a.aliases);
-          const parsedB = parseExtendedAliases(b.aliases);
-          const orderA = parsedA.sortOrder;
-          const orderB = parsedB.sortOrder;
-          if (orderA !== orderB) return orderA - orderB;
-          return a.product_name.localeCompare(b.product_name, 'ko');
-        })
-        .map(p => p.product_name)
+        .map(p => getRepresentativeName(extractBaseSconeName(p.product_name), products))
     ));
+
+    const getGroupMinSortOrder = (groupKey: string) => {
+      const groupVariants = products.filter(p => extractBaseSconeName(p.product_name) === groupKey);
+      let minSort = 9999;
+      groupVariants.forEach(p => {
+        const parsed = parseExtendedAliases(p.aliases);
+        if (parsed.sortOrder < minSort) minSort = parsed.sortOrder;
+      });
+      return minSort;
+    };
+
+    activeBaseNames.sort((nameA, nameB) => {
+      const gKeyA = extractBaseSconeName(nameA);
+      const gKeyB = extractBaseSconeName(nameB);
+      const sortA = getGroupMinSortOrder(gKeyA);
+      const sortB = getGroupMinSortOrder(gKeyB);
+      if (sortA !== sortB) return sortA - sortB;
+      return nameA.localeCompare(nameB, 'ko');
+    });
 
     setProductSequence(prevSeq => {
       // 1. If prevSeq is empty, build from database spacers and active products
@@ -516,13 +563,14 @@ export function useSconeDashboard() {
           });
 
         const prodItems = products
-          .filter(p => activeBaseNames.includes(p.product_name))
+          .filter(p => activeBaseNames.includes(getRepresentativeName(extractBaseSconeName(p.product_name), products)))
           .map(p => {
             const parsed = parseExtendedAliases(p.aliases);
+            const repName = getRepresentativeName(extractBaseSconeName(p.product_name), products);
             return {
               id: p.id,
               type: 'product' as const,
-              name: p.product_name,
+              name: repName,
               sortOrder: parsed.sortOrder
             };
           });
@@ -571,7 +619,7 @@ export function useSconeDashboard() {
 
       activeBaseNames.forEach(name => {
         if (!nextSeq.find(n => n.type === 'product' && n.name === name)) {
-          const p = products.find(prod => prod.product_name === name);
+          const p = products.find(prod => getRepresentativeName(extractBaseSconeName(prod.product_name), products) === name);
           nextSeq.push({
             id: p ? p.id : name,
             type: 'product',
@@ -586,7 +634,7 @@ export function useSconeDashboard() {
     setCarryOverTri(prev => {
       const next = { ...prev };
       products.forEach(p => {
-        const name = p.product_name;
+        const name = getRepresentativeName(extractBaseSconeName(p.product_name), products);
         if (next[name] === undefined) next[name] = 0;
       });
       return next;
@@ -595,7 +643,7 @@ export function useSconeDashboard() {
     setCarryOverCube(prev => {
       const next = { ...prev };
       products.forEach(p => {
-        const name = p.product_name;
+        const name = getRepresentativeName(extractBaseSconeName(p.product_name), products);
         if (next[name] === undefined) next[name] = 0;
       });
       return next;
@@ -604,7 +652,7 @@ export function useSconeDashboard() {
     setManualAdjustTri(prev => {
       const next = { ...prev };
       products.forEach(p => {
-        const name = p.product_name;
+        const name = getRepresentativeName(extractBaseSconeName(p.product_name), products);
         if (next[name] === undefined) next[name] = 0;
       });
       return next;
@@ -648,9 +696,10 @@ export function useSconeDashboard() {
       if (item.type === 'spacer') return;
       const baseName = item.name;
 
-      const pTri = products.find(p => p.product_name === baseName && p.shape_type === '삼각스콘');
-      const pCube = products.find(p => p.product_name === baseName && p.shape_type === '미니큐브');
-      const pStick = products.find(p => p.product_name === baseName && p.shape_type === '스틱스콘');
+      const groupKey = extractBaseSconeName(baseName);
+      const pTri = products.find(p => extractBaseSconeName(p.product_name) === groupKey && p.shape_type === '삼각스콘');
+      const pCube = products.find(p => extractBaseSconeName(p.product_name) === groupKey && p.shape_type === '미니큐브');
+      const pStick = products.find(p => extractBaseSconeName(p.product_name) === groupKey && p.shape_type === '스틱스콘');
 
       const r: any = {
         name: baseName,

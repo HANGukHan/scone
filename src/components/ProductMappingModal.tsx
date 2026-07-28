@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../lib/types';
+import { findMatchedProduct } from '../hooks/useSconeDashboard';
 
 interface ProductMappingModalProps {
   show: boolean;
@@ -82,17 +83,14 @@ export const ProductMappingModal: React.FC<ProductMappingModalProps> = ({
     }
     
     // Find which product matches this name
-    const match = products.find(p => {
-      const pAliases = p.aliases ? p.aliases.split('::')[0].split(',').map(a => a.trim()).filter(Boolean) : [];
-      return pAliases.includes(name) || p.product_name === name;
-    });
+    const match = findMatchedProduct(name, products);
 
     if (match) {
       return { 
         label: `매칭됨 (${match.product_name}) ✅`, 
         color: 'text-emerald-500', 
         bg: 'bg-emerald-500/10 border-emerald-500/30',
-        matchedToSelf: match.id === product.id 
+        matchedToSelf: product ? match.id === product.id : false 
       };
     }
 

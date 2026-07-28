@@ -1,5 +1,5 @@
 import React from 'react';
-import { parseExtendedAliases } from '../hooks/useSconeDashboard';
+import { parseExtendedAliases, extractBaseSconeName } from '../hooks/useSconeDashboard';
 import { Product } from '../lib/types';
 
 interface OvenBatchTableProps {
@@ -52,7 +52,8 @@ export const OvenBatchTable: React.FC<OvenBatchTableProps> = ({
                 const r = computedData[item.name];
                 if (!r || !r.hasTri) return null;
 
-                const pTri = products.find(p => p.product_name === item.name && p.shape_type === '삼각스콘');
+                const groupKey = extractBaseSconeName(item.name);
+                const pTri = products.find(p => extractBaseSconeName(p.product_name) === groupKey && p.shape_type === '삼각스콘');
                 const parsed = parseExtendedAliases(pTri?.aliases);
                 const batchSize = parsed.ovenBatchSize; // defaults to 3.0
 

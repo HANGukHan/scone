@@ -1,5 +1,6 @@
 import React from 'react';
 import { Product } from '../lib/types';
+import { extractBaseSconeName } from '../hooks/useSconeDashboard';
 
 interface ProductionTableProps {
   productSequence: any[];
@@ -131,7 +132,8 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
             const r = computedData[item.name];
             if (!r) return null;
 
-            const pCube = products.find(p => p.product_name === item.name && p.shape_type === '미니큐브');
+            const groupKey = extractBaseSconeName(item.name);
+            const pCube = products.find(p => extractBaseSconeName(p.product_name) === groupKey && p.shape_type === '미니큐브');
             const adjVal = manualAdjustTri[r.name] || 0;
             const hasAdjHighlight = adjVal !== 0;
 
@@ -250,8 +252,9 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
             <td id="sumCubeY">{Object.values(computedData).reduce((sum, r) => sum + r.cubeY, 0)}</td>
             <td id="sumCubeAB" className="hl-rem-qty" style={{ borderRight: '2px solid var(--border-color)' }}>
               {Object.values(computedData).reduce((sum, r) => {
-                if (!r.name.includes('[미니쉐이크]')) return sum;
-                const pCube = products.find(p => p.product_name === r.name && p.shape_type === '미니큐브');
+                if (!r.hasCube) return sum;
+                const groupKey = extractBaseSconeName(r.name);
+                const pCube = products.find(p => extractBaseSconeName(p.product_name) === groupKey && p.shape_type === '미니큐브');
                 const pcs = pCube ? pCube.pcs_per_pan : 2;
                 return sum + (pcs === 4 ? r.cubeAB : r.cubeAA);
               }, 0)}

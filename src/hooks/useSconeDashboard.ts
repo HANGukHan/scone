@@ -181,6 +181,63 @@ export function fuzzyNormalizeProductName(name: string): string {
     .trim();
 }
 
+export function findMatchedProduct(orderName: string, products: Product[]): Product | undefined {
+  const orderNorm = normalize(orderName);
+  
+  // 1. Determine shape from order name
+  let orderShape: '삼각스콘' | '미니큐브' | '스틱스콘' | '기타' = '삼각스콘';
+  if (orderNorm.includes('큐브') || orderNorm.includes('쉐이크')) {
+    orderShape = '미니큐브';
+  } else if (orderNorm.includes('스틱')) {
+    orderShape = '스틱스콘';
+  }
+
+  // 2. Find candidate products matching without shape safety limits first
+  const candidates = products.filter(p => {
+    const aliasList = p.aliases ? p.aliases.split(',').map(a => normalize(a)).filter(Boolean) : [];
+    const baseName = p.product_name;
+    const baseNameNorm = normalize(baseName);
+    const optNameNorm = p.option_name ? normalize(p.option_name) : "";
+    const defaultKeyNorm = baseNameNorm + optNameNorm;
+
+    const fallbackKeys = [defaultKeyNorm, baseNameNorm];
+    if (p.shape_type === '삼각스콘') {
+      fallbackKeys.push(normalize(`-${baseName}`), normalize(`---${baseName}`));
+    } else if (p.shape_type === '미니큐브') {
+      fallbackKeys.push(normalize(`-----[하프팩]${baseName.replace("스콘","")}미니큐브`));
+      fallbackKeys.push(normalize(`-----[미니쉐이크]${baseName.replace("[미니쉐이크]","")}`));
+    } else if (p.shape_type === '스틱스콘') {
+      fallbackKeys.push(normalize(`----[세트]${baseName.replace("스콘","")}스틱 3팩`));
+    }
+
+    const allNormalizedAliases = Array.from(new Set([
+      ...aliasList,
+      ...fallbackKeys.map(k => normalize(k))
+    ]));
+
+    return allNormalizedAliases.some(alias => {
+      if (!alias) return false;
+      return orderNorm === alias || orderNorm.includes(alias) || alias.includes(orderNorm);
+    });
+  });
+
+  if (candidates.length === 0) return undefined;
+
+  // 3. Try to find the candidate with correct shape
+  const shapeMatched = candidates.find(p => p.shape_type === orderShape);
+  if (shapeMatched) return shapeMatched;
+
+  // 4. Try to find a variant of the same base name with correct shape in products database
+  const baseNames = Array.from(new Set(candidates.map(p => p.product_name)));
+  for (const bName of baseNames) {
+    const variantInDb = products.find(p => p.product_name === bName && p.shape_type === orderShape);
+    if (variantInDb) return variantInDb;
+  }
+
+  // 5. Fallback to first candidate
+  return candidates[0];
+}
+
 export const DEFAULT_ORDERS = [
   { "name": "-------[Gourmet M]피넛머드", "option": "[스무스]", "qty": 7 },
   { "name": "-------소분용 OPP 봉투 20매", "option": "[간식용]", "qty": 1 },
@@ -303,49 +360,7 @@ export function useSconeDashboard() {
       const trimmedName = cleanString(orderKey);
       if (!trimmedName) return;
 
-      const matched = products.find(p => {
-        const aliasList = p.aliases
-          ? p.aliases.split(',').map(a => normalize(a)).filter(Boolean)
-          : [];
-        const baseName = p.product_name;
-        const baseNameNorm = normalize(baseName);
-        const optNameNorm = p.option_name ? normalize(p.option_name) : "";
-        const defaultKeyNorm = baseNameNorm + optNameNorm;
-
-        const fallbackKeys: string[] = [defaultKeyNorm, baseNameNorm];
-        if (p.shape_type === '삼각스콘') {
-          fallbackKeys.push(normalize(`-${baseName}`), normalize(`---${baseName}`));
-        } else if (p.shape_type === '미니큐브') {
-          fallbackKeys.push(normalize(`-----[하프팩]${baseName.replace("스콘","")}미니큐브`));
-          fallbackKeys.push(normalize(`-----[미니쉐이크]${baseName.replace("[미니쉐이크]","")}`));
-        } else if (p.shape_type === '스틱스콘') {
-          fallbackKeys.push(normalize(`----[세트]${baseName.replace("스콘","")}스틱 3팩`));
-        }
-
-        const allNormalizedAliases = Array.from(new Set([
-          ...aliasList,
-          ...fallbackKeys.map(k => normalize(k))
-        ]));
-
-        const orderNorm = normalize(trimmedName);
-
-        // Shape category safety check
-        let shapeSafe = true;
-        if (p.shape_type === '미니큐브') {
-          shapeSafe = orderNorm.includes('큐브') || orderNorm.includes('쉐이크');
-        } else if (p.shape_type === '스틱스콘') {
-          shapeSafe = orderNorm.includes('스틱');
-        } else if (p.shape_type === '삼각스콘') {
-          shapeSafe = !orderNorm.includes('큐브') && !orderNorm.includes('쉐이크') && !orderNorm.includes('스틱');
-        }
-
-        if (!shapeSafe) return false;
-
-        return allNormalizedAliases.some(alias => {
-          if (!alias) return false;
-          return orderNorm === alias || orderNorm.includes(alias) || alias.includes(orderNorm);
-        });
-      });
+      const matched = findMatchedProduct(trimmedName, products);
 
       // If not found in database and is not standard spacer or service item
       const isStandardScone = trimmedName.startsWith("-") || trimmedName.includes("스콘") || trimmedName.includes("큐브") || trimmedName.includes("스틱") || trimmedName.includes("요프") || trimmedName.includes("머드") || trimmedName.includes("OPP");
@@ -615,54 +630,12 @@ export function useSconeDashboard() {
 
   function getOrderQtyByMatch(product: Product) {
     let sumQty = 0;
-    const aliasList = product.aliases
-      ? product.aliases.split(',').map(a => normalize(a)).filter(Boolean)
-      : [];
-
-    const baseName = product.product_name;
-    const baseNameNorm = normalize(baseName);
-    const optNameNorm = product.option_name ? normalize(product.option_name) : "";
-    const defaultKeyNorm = baseNameNorm + optNameNorm;
-
-    const fallbackKeys: string[] = [defaultKeyNorm, baseNameNorm];
-    if (product.shape_type === '삼각스콘') {
-      fallbackKeys.push(normalize(`-${baseName}`), normalize(`---${baseName}`));
-    } else if (product.shape_type === '미니큐브') {
-      fallbackKeys.push(normalize(`-----[하프팩]${baseName.replace("스콘","")}미니큐브`));
-      fallbackKeys.push(normalize(`-----[미니쉐이크]${baseName.replace("[미니쉐이크]","")}`));
-    } else if (product.shape_type === '스틱스콘') {
-      fallbackKeys.push(normalize(`----[세트]${baseName.replace("스콘","")}스틱 3팩`));
-    }
-
-    const allNormalizedAliases = Array.from(new Set([
-      ...aliasList,
-      ...fallbackKeys.map(k => normalize(k))
-    ]));
-
     Object.entries(decomposedOrders).forEach(([orderKey, qty]) => {
-      const orderNorm = normalize(orderKey);
-
-      let shapeSafe = true;
-      if (product.shape_type === '미니큐브') {
-        shapeSafe = orderNorm.includes('큐브') || orderNorm.includes('쉐이크');
-      } else if (product.shape_type === '스틱스콘') {
-        shapeSafe = orderNorm.includes('스틱');
-      } else if (product.shape_type === '삼각스콘') {
-        shapeSafe = !orderNorm.includes('큐브') && !orderNorm.includes('쉐이크') && !orderNorm.includes('스틱');
-      }
-
-      if (!shapeSafe) return;
-
-      const isMatched = allNormalizedAliases.some(alias => {
-        if (!alias) return false;
-        return orderNorm === alias || orderNorm.includes(alias) || alias.includes(orderNorm);
-      });
-
-      if (isMatched) {
+      const matched = findMatchedProduct(orderKey, products);
+      if (matched && matched.id === product.id) {
         sumQty += qty;
       }
     });
-
     return sumQty;
   }
 
@@ -925,45 +898,7 @@ export function useSconeDashboard() {
           const trimmedName = cleanString(rawName);
           if (!trimmedName || qty <= 0) continue;
 
-          const matched = products.find(p => {
-            const aliasList = p.aliases ? p.aliases.split(',').map(a => normalize(a)).filter(Boolean) : [];
-            const baseName = p.product_name;
-            const baseNameNorm = normalize(baseName);
-            const optNameNorm = p.option_name ? normalize(p.option_name) : "";
-            const defaultKeyNorm = baseNameNorm + optNameNorm;
-
-            const fallbackKeys = [defaultKeyNorm, baseNameNorm];
-            if (p.shape_type === '삼각스콘') {
-              fallbackKeys.push(normalize(`-${baseName}`), normalize(`---${baseName}`));
-            } else if (p.shape_type === '미니큐브') {
-              fallbackKeys.push(normalize(`-----[하프팩]${baseName.replace("스콘","")}미니큐브`));
-              fallbackKeys.push(normalize(`-----[미니쉐이크]${baseName.replace("[미니쉐이크]","")}`));
-            } else if (p.shape_type === '스틱스콘') {
-              fallbackKeys.push(normalize(`----[세트]${baseName.replace("스콘","")}스틱 3팩`));
-            }
-
-            const allNormalizedAliases = Array.from(new Set([
-              ...aliasList,
-              ...fallbackKeys.map(k => normalize(k))
-            ]));
-
-            const orderNorm = normalize(trimmedName);
-            let shapeSafe = true;
-            if (p.shape_type === '미니큐브') {
-              shapeSafe = orderNorm.includes('큐브') || orderNorm.includes('쉐이크');
-            } else if (p.shape_type === '스틱스콘') {
-              shapeSafe = orderNorm.includes('스틱');
-            } else if (p.shape_type === '삼각스콘') {
-              shapeSafe = !orderNorm.includes('큐브') && !orderNorm.includes('쉐이크') && !orderNorm.includes('스틱');
-            }
-
-            if (!shapeSafe) return false;
-
-            return allNormalizedAliases.some(alias => {
-              if (!alias) return false;
-              return orderNorm === alias || orderNorm.includes(alias) || alias.includes(orderNorm);
-            });
-          });
+          const matched = findMatchedProduct(trimmedName, products);
 
           const isStandardScone = trimmedName.startsWith("-") || trimmedName.includes("스콘") || trimmedName.includes("큐브") || trimmedName.includes("스틱") || trimmedName.includes("요프") || trimmedName.includes("머드") || trimmedName.includes("OPP");
           if (!matched && isStandardScone && !trimmedName.includes("스타터팩") && !trimmedName.includes("서비스스콘")) {

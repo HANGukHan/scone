@@ -280,7 +280,7 @@ export const SconeMasterModal: React.FC<SconeMasterModalProps> = ({
                           ) : (
                             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }}>
                               {p.oven_number ? (
-                                <span className="badge-oven badge-tri">오븐 {p.oven_number}</span>
+                                <span className={`badge-oven ${p.shape_type === '삼각스콘' ? 'badge-tri' : 'badge-sc'}`}>오븐 {p.oven_number}</span>
                               ) : '-'}
                               <button 
                                 onClick={() => {

@@ -294,7 +294,9 @@ export const NewProductRegisterModal: React.FC<NewProductRegisterModalProps> = (
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <label style={{ fontSize: '12px', opacity: 0.75, display: 'block', marginBottom: '4px' }}>오븐 번호</label>
+              <label style={{ fontSize: '12px', opacity: 0.75, display: 'block', marginBottom: '4px' }}>
+                {newSconeShape === '삼각스콘' ? '삼각 오븐 번호' : (newSconeShape === '미니큐브' || newSconeShape === '스틱스콘' ? '큐브/스틱 오븐 번호' : '오븐 번호')}
+              </label>
               <input 
                 type="number" 
                 value={newSconeOven}

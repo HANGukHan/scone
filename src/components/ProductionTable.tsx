@@ -220,7 +220,7 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
                 </td>
                 <td className="hl-adjusted-pans">{r.hasCube ? r.cubeY : ''}</td>
                 <td className="hl-rem-qty" style={{ borderRight: '2px solid var(--border-color)' }}>
-                  {r.hasCube && r.name.includes('[미니쉐이크]') ? (pCube && pCube.pcs_per_pan === 4 ? r.cubeAB : r.cubeAA) : ''}
+                  {r.hasCube ? (pCube && pCube.pcs_per_pan === 4 ? r.cubeAB : r.cubeAA) : ''}
                 </td>
                 
                 {/* Stick */}
